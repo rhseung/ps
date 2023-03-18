@@ -4,7 +4,6 @@ from math import gcd
 from math import floor
 from math import sqrt
 from random import randint
-setrecursionlimit(10 ** 8)
 def inputline(): return stdin.readline().strip()
 
 def powmod(a: int, b: int, m: int) -> int:
@@ -74,7 +73,7 @@ def pollard_rho(n: int, i: int) -> int:
 		d = gcd(abs(x - y), n)
 
 	if d == n:
-		return pollard_rho(n, i + 1)
+		return pollard_rho(n, i + 2)
 	elif is_prime(d):
 		return d
 	else:
