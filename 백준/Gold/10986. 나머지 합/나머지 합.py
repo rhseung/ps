@@ -15,17 +15,18 @@ for i in range(1, size):
 # 1 0 0 1 0
 # idea: 0의 개수는 처음부터 지금까지의 합이 해당되는 구간이 되는 경우를 의미한다.
 
-# count = 0
-# for i in range(size):
-# 	for j in range(i, size):
-#
-# 		# cum_arr[j] - (0 if i == 0 else cum_arr[i - 1]) == 0
-# 		# <=> cum_arr[j] == (0 if i == 0 else cum_arr[i - 1])
-# 		# idea: 나머지가 같은 쌍 개수 구하기 -> 쌍은 Combination(개수, 2) 개
-#
-# 		if cum_arr[j] == (0 if i == 0 else cum_arr[i - 1]):
-# 			# print(i, j)
-# 			count += 1
+def naive():
+	count = 0
+	for i in range(size):
+		for j in range(i, size):
+			
+			# cum_arr[j] - (0 if i == 0 else cum_arr[i - 1]) == 0
+			# <=> cum_arr[j] == (0 if i == 0 else cum_arr[i - 1])
+			# idea: 나머지가 같은 쌍 개수 구하기 -> 쌍은 Combination(개수, 2) 개
+			if cum_arr[j] == (0 if i == 0 else cum_arr[i - 1]):
+				# print(i, j)
+				count += 1
+
 
 def c2(x):
 	return x * (x - 1) // 2
