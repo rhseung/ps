@@ -8,47 +8,22 @@ input = sys.stdin.readline
 n, m = map(int, input().split())
 maze = [list(map(int, list(input().strip()))) for _ in range(n)]
 
-# graph = {
-#     (1, 1): [(1, 2), ...],
-#     (1, 2): [...],
-# }
-graph = {(r, c): set() for r in range(n) for c in range(m) if maze[r][c] == 1}
+def bfs(g, s: tuple[int, int]):
+    visited = [[False] * m for _ in range(n)]
 
-for i in range(n):
-    for j in range(m):
-        if maze[i][j] >= 1:
-            ways = [(i-1, j), (i-1, j), (i, j-1), (i, j+1)]
+    visited[s[0]][s[1]] = True
+    q = deque([s])
 
-            for a, b in ways:
-                if (a >= 0 and b >= 0) and (a < n and b < m) and maze[a][b] >= 1:
-                    graph[i, j].add((a, b))
-                    graph[a, b].add((i, j))
+    while q:
+        a, b = q.popleft()
 
-for key in graph:
-    graph[key] = list(graph[key])
+        for x, y in [(a-1, b), (a+1, b), (a, b-1), (a, b+1)]:
+            if 0 <= x < n and 0 <= y < m:
+                if g[x][y] != 0:
+                    if not visited[x][y]:
+                        visited[x][y] = True
+                        g[x][y] = g[a][b] + 1
+                        q.append((x, y))
 
-depth = 1
-def bfs(g: dict[tuple[int, int], list[tuple[int, int]]], start: tuple[int, int]):
-    global depth
-
-    visited = set()
-    visited.add(start)
-    queue = deque([start])
-
-    while queue:
-        top = queue.popleft()
-        if top == (n - 1, m - 1):
-            return
-
-        for w in g[top]:
-            if w not in visited:
-                queue.append(w)
-                visited.add(w)
-
-            maze[w[0]][w[1]] = maze[top[0]][top[1]] + 1
-
-bfs(graph, (0, 0))
-
-# for e in maze:
-#     print(*e, sep='\t')
+bfs(maze, (0, 0))
 print(maze[n-1][m-1])
