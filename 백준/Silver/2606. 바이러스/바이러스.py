@@ -1,29 +1,21 @@
-__problem__ = 'https://boj.kr/2606', '바이러스'
+n = int(input())
+m = int(input())
+graph = [[] for _ in range(n + 1)]
 
-import sys
-
-input = sys.stdin.readline
-
-n_coms = int(input())
-n_edges = int(input())
+for _ in range(m):
+    a, b = map(int, input().split())
+    graph[a].append(b)
+    graph[b].append(a)
 
 cnt = 0
-graph = [[] for _ in range(n_coms + 1)]
-for _ in range(n_edges):
-    v, w = map(int, input().split())
-
-    graph[v].append(w)
-    graph[w].append(v)
-
-def dfs(graph: list[list[int]], now: int, visited: list[bool]):
+def dfs(g, v, V):
     global cnt
-    visited[now] = True
-    cnt += 1
+    V[v] = True
 
-    for w in graph[now]:
-        if not visited[w]:
-            dfs(graph, w, visited)
+    for w in g[v]:
+        if not V[w]:
+            dfs(g, w, V)
+            cnt += 1
 
-dfs(graph, 1, [False]*(n_coms + 1))
-
-print(cnt - 1)  # 1번 컴퓨터는 배제
+dfs(graph, 1, [False] * (n + 1))
+print(cnt)
