@@ -4,7 +4,7 @@
 
 ### 성능 요약
 
-메모리: 115836 KB, 시간: 676 ms
+메모리: 115756 KB, 시간: 620 ms
 
 ### 분류
 
@@ -12,30 +12,30 @@
 
 ### 제출 일자
 
-2023년 11월 3일 15:01:07
+2023년 12월 17일 15:33:21
 
 ### 문제 설명
 
-<p>BOJ 알고리즘 캠프에는 총 N명이 참가하고 있다. 사람들은 0번부터 N-1번으로 번호가 매겨져 있고, 일부 사람들은 친구이다.</p>
+<p style="user-select: auto !important;">BOJ 알고리즘 캠프에는 총 N명이 참가하고 있다. 사람들은 0번부터 N-1번으로 번호가 매겨져 있고, 일부 사람들은 친구이다.</p>
 
-<p>오늘은 다음과 같은 친구 관계를 가진 사람 A, B, C, D, E가 존재하는지 구해보려고 한다.</p>
+<p style="user-select: auto !important;">오늘은 다음과 같은 친구 관계를 가진 사람 A, B, C, D, E가 존재하는지 구해보려고 한다.</p>
 
-<ul>
-	<li>A는 B와 친구다.</li>
-	<li>B는 C와 친구다.</li>
-	<li>C는 D와 친구다.</li>
-	<li>D는 E와 친구다.</li>
+<ul style="user-select: auto !important;">
+	<li style="user-select: auto !important;">A는 B와 친구다.</li>
+	<li style="user-select: auto !important;">B는 C와 친구다.</li>
+	<li style="user-select: auto !important;">C는 D와 친구다.</li>
+	<li style="user-select: auto !important;">D는 E와 친구다.</li>
 </ul>
 
-<p>위와 같은 친구 관계가 존재하는지 안하는지 구하는 프로그램을 작성하시오.</p>
+<p style="user-select: auto !important;">위와 같은 친구 관계가 존재하는지 안하는지 구하는 프로그램을 작성하시오.</p>
 
 ### 입력 
 
- <p>첫째 줄에 사람의 수 N (5 ≤ N ≤ 2000)과 친구 관계의 수 M (1 ≤ M ≤ 2000)이 주어진다.</p>
+ <p style="user-select: auto !important;">첫째 줄에 사람의 수 N (5 ≤ N ≤ 2000)과 친구 관계의 수 M (1 ≤ M ≤ 2000)이 주어진다.</p>
 
-<p>둘째 줄부터 M개의 줄에는 정수 a와 b가 주어지며, a와 b가 친구라는 뜻이다. (0 ≤ a, b ≤ N-1, a ≠ b) 같은 친구 관계가 두 번 이상 주어지는 경우는 없다.</p>
+<p style="user-select: auto !important;">둘째 줄부터 M개의 줄에는 정수 a와 b가 주어지며, a와 b가 친구라는 뜻이다. (0 ≤ a, b ≤ N-1, a ≠ b) 같은 친구 관계가 두 번 이상 주어지는 경우는 없다.</p>
 
 ### 출력 
 
- <p>문제의 조건에 맞는 A, B, C, D, E가 존재하면 1을 없으면 0을 출력한다.</p>
+ <p style="user-select: auto !important;">문제의 조건에 맞는 A, B, C, D, E가 존재하면 1을 없으면 0을 출력한다.</p>
 
