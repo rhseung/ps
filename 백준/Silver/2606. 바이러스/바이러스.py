@@ -10,12 +10,12 @@ for _ in range(m):
 cnt = 0
 def dfs(g, v, V):
     global cnt
+    cnt += 1
     V[v] = True
 
     for w in g[v]:
         if not V[w]:
             dfs(g, w, V)
-            cnt += 1
 
 dfs(graph, 1, [False] * (n + 1))
-print(cnt)
+print(cnt - 1)
