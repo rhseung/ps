@@ -6,20 +6,26 @@ for _ in range(m):
     graph[a].append(b)
     graph[b].append(a)
 
-def dfs(g, v, visited, d):
-    if d == 4:
-        print(1)
-        exit()
+flag = False
 
-    visited[v] = True
+def dfs(g, v, V, d):
+    if d == 4:
+        global flag
+        flag = True
+        return
+
+    V[v] = True
 
     for w in g[v]:
-        if not visited[w]:
-            dfs(g, w, visited, d + 1)
+        if not V[w]:
+            dfs(g, w, V, d + 1)
 
-    # note: 백트래킹 위치는 모든 경로를 다 분석하고 나서
-    visited[v] = False
+    V[v] = False
 
 for i in range(n):
     dfs(graph, i, [False] * n, 0)
-print(0)
+    if flag:
+        print(1)
+        break
+else:
+    print(0)
