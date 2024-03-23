@@ -22,10 +22,7 @@ void dfs(int before, int depth) {
 void solution() {
     cin >> n >> m;
 
-    for (int i = 1; i <= n; ++i) {
-        buf[1] = i;
-        dfs(i, 1);
-    }
+    dfs(1, 0);
 }
 
 int main() {
