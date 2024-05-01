@@ -9,6 +9,8 @@ void solution() {
     int *A = new int[n];
     int *D = new int[n];
 
+    int max_v = INT_MIN;
+
     for (int i = 0; i < n; ++i) {
         cin >> A[i];
 
@@ -17,17 +19,14 @@ void solution() {
             if (A[i] > A[j])
                 D[i] = max(D[i], D[j] + 1);
         }
+
+        max_v = max(max_v, D[i]);
     }
 
-    int max_val = INT_MIN;
-    for (int i = 0; i < n; ++i) {
-        max_val = max(max_val, D[i]);
-    }
+    cout << max_v;
 
-    cout << max_val;
-
-    delete(A);
-    delete(D);
+    delete[] A;
+    delete[] D;
 }
 
 int main() {
