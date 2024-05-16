@@ -11,15 +11,13 @@ void union_(int *S, int a, int b) {
     a = find_(S, a);
     b = find_(S, b);
 
-    if (a == b)
-        return;
-    else if (a < b)
+    if (a < b)
         S[b] = a;
     else
         S[a] = b;
 }
 
-void $(int n, int m, int *S, int *M) {
+void $(int n, int m, const int *S, const int *M) {
     int root = S[M[0]];
     for (int i = 1; i < m; ++i) {
         if (root != S[M[i]]) {
