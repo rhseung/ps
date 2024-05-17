@@ -6,17 +6,12 @@ problem_name = "절댓값 힙"
 input = sys.stdin.readline
 
 n = int(input())
-prior_q = []
+H = []
 
 for _ in range(n):
-	cmd = int(input())
+	query = int(input())
 	
-	if cmd != 0:
-		# 우선순위 큐에 데이터가 [a, b, c, d, ...] 이런 구조라면, 우선순위 큐는 pop 할 때,
-		# a의 오름차순, a가 같으면 b의 오름차순, ... 순서로 정렬한다
-		heappush(prior_q, (abs(cmd), cmd))
+	if query != 0:
+		heappush(H, (abs(query), query))
 	else:
-		if prior_q:
-			print(heappop(prior_q)[1])
-		else:
-			print(0)
+		print(heappop(H)[1] if H else 0)
