@@ -1,18 +1,9 @@
-__problem__ = 'https://boj.kr/11047', '동전 0'
-
-import sys
-
-input = sys.stdin.readline
-
 n, k = map(int, input().split())
-N = [int(input().strip()) for _ in range(n)]
+A = [int(input()) for _ in range(n)]
 
-count = 0
-for e in reversed(N):
-    t = k // e
-    count += t
-    k -= e * t
+cnt = 0
+for i in range(n - 1, -1, -1):
+    e, k = divmod(k, A[i])
+    cnt += e
 
-    if k == 0:
-        print(count)
-        exit()
+print(cnt)
