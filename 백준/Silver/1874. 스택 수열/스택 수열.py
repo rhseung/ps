@@ -1,33 +1,31 @@
 import sys
 
-problem_name = "스택 수열"
 problem_url = "https://boj.kr/1874"
+problem_name = "스택 수열"
 input = sys.stdin.readline
 
-stack = []
-way = []
-
 n = int(input())
-keys = []
-for _ in range(n):
-	keys.append(int(input()))
-	
+S = []
+ans = []
+
 i = 1
-for key in keys:
-	while True:
-		if ((not stack) or stack[-1] < key) and i <= n:
-			stack.append(i)
+for _ in range(1, n + 1):
+	query = int(input())
+	
+	# 비어있는 S
+	if not S or query >= i:
+		while not S or query > S[-1]:
+			S.append(i)
+			ans.append('+')
 			i += 1
-			way.append('+')
-			
-		if stack and stack[-1] > key:
+		S.pop()
+		ans.append('-')
+	else:   # query < i
+		val = S.pop()
+		ans.append('-')
+		if query > val:
 			print('NO')
-			exit(0) # 억까
-		
-		if stack and stack[-1] == key:
-			stack.pop()
-			way.append('-')
-			break
-			
-for e in way:
-	print(e)
+			exit()
+
+for a in ans:
+	print(a)
