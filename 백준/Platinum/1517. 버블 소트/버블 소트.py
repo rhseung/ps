@@ -6,47 +6,45 @@ input = sys.stdin.readline
 
 n = int(input())
 A = list(map(int, input().split()))
-swap = 0
 
-def merge_sort(A, start, end):
-	if start < end:
-		mid = (start + end) // 2
-		
-		merge_sort(A, start, mid)
-		merge_sort(A, mid + 1, end)
-		merge(A, start, mid, end)
+cnt = 0
 
-def merge(A, start, mid, end):
-	global swap
+def merge_sort(A, s, e):
+	if s < e:
+		m = (s + e) // 2
+		merge_sort(A, s, m)
+		merge_sort(A, m + 1, e)
+		merge(A, s, m, e)
+
+def merge(A, s, m, e):
+	global cnt
 	
-	L = A[start:mid+1]
-	R = A[mid+1:end+1]
+	L = A[s:m+1]
+	R = A[m+1:e+1]
 	
-	i = start
-	l = r = 0
+	n_L, n_R = len(L), len(R)
+	l, r = 0, 0
+	i = s
 	
-	# idea. L 대신 R을 A에 넣는 것이 곧 스왑
-	#  - L의 l번째 인덱스까지 스왑을 해야 하므로 len(L) - l 이 스왑 횟수
-	
-	while l < len(L) and r < len(R):
+	while l < n_L and r < n_R:
 		if L[l] <= R[r]:
 			A[i] = L[l]
 			l += 1
 		else:
 			A[i] = R[r]
-			swap += len(L) - l
 			r += 1
+			cnt += n_L - l
 		i += 1
 	
-	while l < len(L):
+	while l < n_L:
 		A[i] = L[l]
 		l += 1
 		i += 1
 	
-	while r < len(R):
+	while r < n_R:
 		A[i] = R[r]
 		r += 1
 		i += 1
 
 merge_sort(A, 0, n - 1)
-print(swap)
+print(cnt)
