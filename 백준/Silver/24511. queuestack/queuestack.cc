@@ -2,11 +2,7 @@
 #define endl '\n'
 using namespace std;
 
-int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(nullptr);
-    cout.tie(nullptr);
-    
+void solution() {
     int n;
     cin >> n;
 
@@ -53,5 +49,13 @@ int main() {
         dq.pop_back();
     }
 
+    delete(A);
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
+    cout.tie(nullptr);
+    solution();
     return 0;
 }
