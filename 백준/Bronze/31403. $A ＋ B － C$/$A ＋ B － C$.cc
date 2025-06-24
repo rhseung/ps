@@ -13,10 +13,9 @@ int main() {
     cin >> a >> b >> c;
 
     // int l = pow(10, floor(log10(b) + 1));
-    // int l = 1;
-    // for (; l <= a; l *= 10);
+    int l = 1;
+    for (; l <= b; l *= 10);
 
     cout << a + b - c << endl;
-    cout << stoi(to_string(a) + to_string(b)) - c << endl;
-    // cout << a * l + b - c << endl;
+    cout << a * l + b - c << endl;
 }
