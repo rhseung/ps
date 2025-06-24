@@ -2,7 +2,8 @@ def cantor(n):
     if n == 0:
         return '-'
     
-    return f'{cantor(n - 1)}{" " * (3**(n - 1))}{cantor(n - 1)}'
+    l = cantor(n - 1)
+    return f'{l}{" " * (3**(n - 1))}{l}'
 
 try:
     while True:
