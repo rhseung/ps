@@ -1,18 +1,15 @@
 #include <bits/stdc++.h>
-#define endl '\n'
+#define endl "\n"
+#define INF 0x3f3f3f3f
+
 using namespace std;
-
-void solution() {
-    int n;
-    cin >> n;
-
-
-}
 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(nullptr);
     cout.tie(nullptr);
-    solution();
+
+
+
     return 0;
 }
