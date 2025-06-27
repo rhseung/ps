@@ -3,8 +3,6 @@ project(ps)
 
 set(CMAKE_CXX_STANDARD 20)
 
-include_directories(algorithms)
-
 add_executable(ps
-        main.cpp
+        1916.cpp
 )
