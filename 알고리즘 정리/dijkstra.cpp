@@ -17,10 +17,10 @@ vector<int> dijkstra(const vector<vector<pair<int, int>>> &adj, const int start)
 
         if (weight > dist[vtx]) continue;   // 이미 최솟값보다 커진 이상 다음 경로를 탐색할 필요가 없음
 
-        for (auto [next_weight, u] : adj[vtx]) {
-            if (dist[u] > dist[vtx] + next_weight) {
-                dist[u] = dist[vtx] + next_weight;
-                priority_queue.emplace(dist[u], u);
+        for (auto [next_weight, next_vtx] : adj[vtx]) {
+            if (dist[next_vtx] > dist[vtx] + next_weight) {
+                dist[next_vtx] = dist[vtx] + next_weight;
+                priority_queue.emplace(dist[next_vtx], next_vtx);
             }
         }
     }

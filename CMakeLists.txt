@@ -4,5 +4,5 @@ project(ps)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(ps
-        1916.cpp
+        1865.cpp
 )
