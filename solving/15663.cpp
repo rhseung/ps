@@ -28,6 +28,8 @@ int main() {
     for (int i = 0; i < n; ++i)
         cin >> numbers[i];
 
+    math::
+
     ranges::sort(numbers);
     f(numbers, used, 0, m);
 

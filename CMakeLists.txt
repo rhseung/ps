@@ -4,5 +4,7 @@ project(ps)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(ps
-        "15000/15718 - 돌아온 떡파이어.cpp"
+        algorithms/graph.hpp
+        algorithms/math.hpp
+        "24000/24480 - 알고리즘 수업 - 깊이 우선 탐색 2 - 2.cpp"
 )
