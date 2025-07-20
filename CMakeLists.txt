@@ -6,5 +6,5 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(ps
         algorithms/graph.hpp
         algorithms/math.hpp
-        "24000/24480 - 알고리즘 수업 - 깊이 우선 탐색 2 - 2.cpp"
+        "01000/1956 - 운동.cpp"
 )
