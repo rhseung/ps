@@ -6,5 +6,6 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(ps
         algorithms/graph.hpp
         algorithms/math.hpp
-        "solving/2467 - 용액.cpp"
+        algorithms/search.hpp
+        "12000/12781 - PIZZA ALVOLOC.cpp"
 )

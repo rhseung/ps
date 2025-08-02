@@ -4,7 +4,6 @@
 
 #include <bits/stdc++.h>
 #define endl "\n"
-#define INF 0x3f3f3f3f
 
 using namespace std;
 using ll = long long;
@@ -23,7 +22,7 @@ int main() {
   }
 
   ll l = 0, r = n - 1;
-  ll min_sum = INF;
+  ll min_sum = LLONG_MAX;
   pair<ll, ll> ans = {l, r};
 
   while (l < r) {
