@@ -12,5 +12,7 @@
 #include "math/is_prime.hpp"
 #include "math/multiplicative_inverse.hpp"
 #include "math/radix_convert.hpp"
+#include "math/matrix.hpp"
+#include "math/phi.hpp"
 
 #endif //MATH_HPP

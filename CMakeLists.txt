@@ -7,5 +7,4 @@ add_executable(ps
         algorithms/graph.hpp
         algorithms/math.hpp
         algorithms/search.hpp
-        "12000/12781 - PIZZA ALVOLOC.cpp"
 )
