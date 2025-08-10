@@ -7,4 +7,5 @@ add_executable(ps
     "algorithms/graph.hpp"
     "algorithms/math.hpp"
     "algorithms/search.hpp"
+    "solving/1197 - 최소 스패닝 트리.cpp"
 )
