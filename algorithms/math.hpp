@@ -14,5 +14,7 @@
 #include "math/radix_convert.hpp"
 #include "math/matrix.hpp"
 #include "math/phi.hpp"
+#include "math/mod_operation.hpp"
+#include "math/factor.hpp"
 
 #endif //MATH_HPP
