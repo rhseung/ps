@@ -5,6 +5,7 @@
 #ifndef PS_FACTOR_HPP
 #define PS_FACTOR_HPP
 
+#include <map>
 #include <ranges>
 #include <__numeric/gcd_lcm.h>
 #include "mod_operation.hpp"
@@ -53,6 +54,41 @@ namespace math {
         l.insert(l.end(), r.begin(), r.end());
 
         return l;
+    }
+
+    /**
+     * n의 소인수와 그 개수를 맵 형태로 반환합니다.
+     * 예를 들어, n = 12이면 {2: 2, 3: 1}을 반환합니다.
+     * 이 함수는 `factor` 함수를 사용하여 n의 소인수를 찾고,
+     * 각 소인수의 개수를 세어 맵에 저장합니다.
+     * @param n
+     * @return n의 소인수와 그 개수를 저장한 맵
+     */
+    inline map<ull, ull> factor_map(const ull n) {
+        map<ull, ull> ret;
+        for (const ull f : factor(n)) {
+            if (!ret.contains(f))
+                ret[f] = 0;
+            ret[f]++;
+        }
+
+        return ret;
+    }
+
+    /**
+     * n의 소인수와 그 개수를 쌍(pair) 형태로 반환합니다.
+     * 예를 들어, n = 12이면 {(2, 2), (3, 1)}을 반환합니다.
+     * 이 함수는 `factor_map` 함수를 사용하여 n의 소인수를 찾고,
+     * 각 소인수와 그 개수를 쌍(pair)으로 만들어 벡터에 저장합니다.
+     * @param n
+     * @return n의 소인수와 그 개수를 저장한 벡터
+     */
+    inline vector<pair<ull, ull>> factor_pair(const ull n) {
+        vector<pair<ull, ull>> ret;
+        for (const auto& [factor, count] : factor_map(n)) {
+            ret.emplace_back(factor, count);
+        }
+        return ret;
     }
 }
 
