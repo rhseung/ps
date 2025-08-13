@@ -16,5 +16,6 @@
 #include "math/phi.hpp"
 #include "math/mod_operation.hpp"
 #include "math/factor.hpp"
+#include "math/mobius.hpp"
 
 #endif //MATH_HPP
