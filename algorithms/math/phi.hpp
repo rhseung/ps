@@ -5,11 +5,14 @@
 #ifndef PS_PHI_HPP
 #define PS_PHI_HPP
 
-namespace math {
-    inline std::size_t phi(std::size_t n) {
-        std::size_t result = n;
+using ll = long long int;
+using ull = unsigned long long int;
 
-        for (std::size_t i = 2; i * i <= n; ++i) {
+namespace math {
+    inline ll phi(ll n) {
+        ll result = n;
+
+        for (ll i = 2; i * i <= n; ++i) {
             if (n % i == 0) {
                 result -= result / i;
                 while (n % i == 0) n /= i;

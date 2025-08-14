@@ -22,6 +22,16 @@ namespace math {
             if (e & 1) ans = modmul(ans, b, M);
         return ans;
     }
+
+    inline ll modpow(ll a, ll b, const ll c) {
+        ll ret = 1;
+        while (b) {
+            if (b & 1) ret = ret * a % c;
+            b >>= 1;
+            a = a * a % c;
+        }
+        return ret;
+    }
 }
 
 #endif //PS_MOD_OPERATION_HPP

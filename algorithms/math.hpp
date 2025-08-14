@@ -17,5 +17,6 @@
 #include "math/mod_operation.hpp"
 #include "math/factor.hpp"
 #include "math/mobius.hpp"
+#include "math/berlekamp_massey.hpp"
 
 #endif //MATH_HPP
