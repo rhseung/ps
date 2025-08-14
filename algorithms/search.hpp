@@ -5,6 +5,6 @@
 #ifndef SEARCH_HPP
 #define SEARCH_HPP
 
-#include "search/longest_increasing_sequence.hpp"
+#include "search/LIS.hpp"
 
 #endif // SEARCH_HPP
