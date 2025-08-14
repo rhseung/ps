@@ -8,4 +8,7 @@ add_executable(ps
     "algorithms/math.hpp"
     "algorithms/search.hpp"
     "algorithms/math/berlekamp_massey.hpp"
+    "algorithms/graph/kruskal.hpp"
+    "algorithms/graph/prim.hpp"
+    "algorithms/graph/weighted_edge.hpp"
 )

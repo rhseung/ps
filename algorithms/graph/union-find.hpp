@@ -1,20 +1,42 @@
-#pragma once
+#ifndef UNION_FIND_HPP
+#define UNION_FIND_HPP
 
-int parents[500 + 1];   // 노드 번호는 1부터 시작.
+#include <vector>
 
-int find_(int u) {
-    if (u == parents[u]) return parents[u];
-    else return parents[u] = find_(parents[u]);
+// https://4legs-study.tistory.com/94?category=886581
+
+namespace graph {
+    // 경로 압축 최적화 적용됨
+    inline int find_root(std::vector<int>& parents, const int x) {
+        if (x == parents[x]) return x;
+        return parents[x] = find_root(parents, parents[x]);
+    }
+
+    inline void union_root(std::vector<int>& parents, int x, int y) {
+        x = find_root(parents, x);
+        y = find_root(parents, y);
+
+        if (x != y) {
+            parents[x] = y;
+        }
+    }
+
+    // union by rank 최적화 적용됨
+    inline void union_root_fast(std::vector<int>& parents, std::vector<int>& ranks, int x, int y) {
+        x = find_root(parents, x);
+        y = find_root(parents, y);
+
+        if (x != y) {
+            if (ranks[x] < ranks[y])
+                parents[x] = y;
+            else if (ranks[x] > ranks[y])
+                parents[y] = x;
+            else {
+                parents[x] = y;
+                ranks[x]++;
+            }
+        }
+    }
 }
 
-void union_(int a, int b) {
-    a = find_(a);
-    b = find_(b);
-
-    if (a == b)
-        return;
-    else if (a < b)
-        parents[b] = a;
-    else
-        parents[a] = b;
-}
+#endif
