@@ -6,12 +6,12 @@ using namespace std;
 using ll = long long;
 using ull = unsigned long long;
 
-inline ll modpow(ll a, ll b, const ll c) {
+inline ll modpow(ll a, ll b, const ll m) {
     ll ret = 1;
     while (b) {
-        if (b & 1) ret = ret * a % c;
+        if (b & 1) ret = ret * a % m;
         b >>= 1;
-        a = a * a % c;
+        a = a * a % m;
     }
     return ret;
 }
@@ -24,7 +24,7 @@ int main() {
     ll n, k, m;
     cin >> n >> k >> m;
 
-    const auto sieve = new bool[n + 1];
+    vector<bool> sieve(n + 1);
     sieve[0] = true;
     sieve[1] = true;
 
@@ -65,6 +65,4 @@ int main() {
     }
 
     cout << res << endl;
-
-    delete[] sieve;
 };
