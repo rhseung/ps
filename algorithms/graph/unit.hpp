@@ -5,10 +5,11 @@
 #ifndef PS_WEIGHTED_EDGE_HPP
 #define PS_WEIGHTED_EDGE_HPP
 
+#include <concepts>
 #include <type_traits>
 
 namespace graph {
-    template <typename T> requires std::is_integral_v<T> || std::is_floating_point_v<T>
+    template <typename T> requires std::integral<T> || std::floating_point<T>
     struct Edge {
         T weight;
         int from, to;

@@ -14,6 +14,6 @@
 #include "graph/union-find.hpp"
 #include "graph/vector2d.hpp"
 #include "graph/mst.hpp"
-#include "graph/weighted_edge.hpp"
+#include "graph/unit.hpp"
 
 #endif // GRAPH_HPP
