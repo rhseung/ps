@@ -18,5 +18,6 @@
 #include "math/factor.hpp"
 #include "math/mobius.hpp"
 #include "math/berlekamp_massey.hpp"
+#include "math/sieve.hpp"
 
 #endif //MATH_HPP
