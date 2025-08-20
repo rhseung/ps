@@ -32,7 +32,7 @@ namespace graph {
             else if (ranks[x] > ranks[y])
                 parents[y] = x;
             else {
-                parents[x] = y;
+                parents[y] = x;
                 ranks[x]++;
             }
         }
