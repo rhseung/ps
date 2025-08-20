@@ -15,5 +15,6 @@
 #include "graph/vector2d.hpp"
 #include "graph/mst.hpp"
 #include "graph/unit.hpp"
+#include "graph/topological_sort.hpp"
 
 #endif // GRAPH_HPP
