@@ -19,12 +19,16 @@ inline ll gcd(const ll a, const ll b) {
     return gcd(b, a % b);
 }
 
+ll mod_nonzero(const ll a, const ll b) {
+    return a > b ? a % b + b : a;
+}
+
 ll modpow(ll a, ll b, ll c) {
     ll ret = 1;
     while (b) {
-        if (b & 1) ret = ret * a % c;
+        if (b & 1) ret = mod_nonzero(ret * a, c);
         b >>= 1;
-        a = a * a % c;
+        a = mod_nonzero(a * a, c);
     }
     return ret;
 }
@@ -46,12 +50,11 @@ ll phi(ll n) {
 }
 
 ll f(const ll b, const ll x, const ll m) {
-    if (m == 1) return 1; // 대신 마지막에 f(b, x, m) % m을 해줘야 함
     if (x == 0) return 1;
 
     // a^p = a^(p mod phi(m)) mod m을 이용해 구할 수 있다.
     const ll p = phi(m);
-    return modpow(b, f(b, x - 1, p) + (gcd(b, m) != 1 ? p : 0), m);
+    return modpow(b, f(b, x - 1, p), m);
 }
 
 int main() {

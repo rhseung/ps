@@ -9,6 +9,11 @@ using ll = long long int;
 using ull = unsigned long long int;
 
 namespace math {
+    /**
+     * 오일러 피 함수, 1부터 n까지의 수 중에서 n과 서로소인 수의 개수, O(sqrt(n)).
+     * @param n
+     * @return phi(n)
+     */
     inline ll phi(ll n) {
         ll result = n;
 
