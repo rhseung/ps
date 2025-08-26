@@ -6,6 +6,19 @@ using namespace std;
 using ll = long long;
 using ull = unsigned long long;
 
+/**
+ * 유클리드 호제법
+ * @param a
+ * @param b
+ * @return gcd(a, b)
+ */
+inline ll gcd(const ll a, const ll b) {
+    if (b == 0)
+        return a;
+
+    return gcd(b, a % b);
+}
+
 ll modpow(ll a, ll b, ll c) {
     ll ret = 1;
     while (b) {
@@ -32,19 +45,13 @@ ll phi(ll n) {
     return result;
 }
 
-ll naive(const ll b, const ll x, const ll m) {
-    if (x == 0) return 1;
-    else return modpow(b, naive(b, x - 1, m), m);
-}
-
 ll f(const ll b, const ll x, const ll m) {
     if (m == 1) return 1; // 대신 마지막에 f(b, x, m) % m을 해줘야 함
     if (x == 0) return 1;
-    if (x <= 5) return naive(b, x, m);
 
     // a^p = a^(p mod phi(m)) mod m을 이용해 구할 수 있다.
     const ll p = phi(m);
-    return modpow(b, f(b, x - 1, p) + p, m);
+    return modpow(b, f(b, x - 1, p) + (gcd(b, m) != 1 ? p : 0), m);
 }
 
 int main() {

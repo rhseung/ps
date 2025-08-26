@@ -5,7 +5,7 @@
 #ifndef MULTIPLICATIVE_INVERSE_HPP
 #define MULTIPLICATIVE_INVERSE_HPP
 
-#include "euclidean_algorithm.hpp"
+#include "gcd.hpp"
 
 #include <functional>
 #include <stdexcept>
