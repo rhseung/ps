@@ -5,7 +5,6 @@
 #ifndef BINOMIAL_COEFF_HPP
 #define BINOMIAL_COEFF_HPP
 
-#include "fast_power.hpp"
 #include "radix_convert.hpp"
 #include <vector>
 
