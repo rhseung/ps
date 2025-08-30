@@ -17,6 +17,8 @@ using base = std::complex<double>;
 constexpr double PI = std::numbers::pi;
 constexpr int mod = 998244353;
 
+// https://koosaga.com/139
+
 namespace math {
     using real_t = double;
     using base = complex<real_t>;
