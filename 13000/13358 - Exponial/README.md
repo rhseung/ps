@@ -1,8 +1,8 @@
 # 13358. [Exponial](https://www.acmicpc.net/problem/13358)
 
-| 티어 | 시간 제한 | 메모리 제한 | 제출 | 정답 | 맞힌 사람 | 정답 비율 |
-|---|---|---|---:|---:|---:|---:|
-| <img src="https://static.solved.ac/tier_small/20.svg" width="50%" /> | 2 초 | 512 MB | 919 | 212 | 176 | 22.194% |
+| 티어                                                                  | 시간 제한 | 메모리 제한 | 제출 | 정답 | 맞힌 사람 | 정답 비율 |
+| --------------------------------------------------------------------- | --------- | ----------- | ---: | ---: | --------: | --------: |
+| <img src="https://static.solved.ac/tier_small/20.svg" width="20px" /> | 2 초      | 512 MB      |  919 |  212 |       176 |   22.194% |
 
 ---
 
@@ -10,7 +10,7 @@
 
 Everybody loves big numbers (if you do not, you might want to stop reading at this point). There are many ways of constructing really big numbers known to humankind, for instance:
 
-- Exponentiation: \(  $42^{2016}$= \underbrace {42 \cdot 42 \cdot ... \cdot 42}_\text{2016 times} \)
+- Exponentiation: \( $42^{2016}$= \underbrace {42 \cdot 42 \cdot ... \cdot 42}\_\text{2016 times} \)
 - Factorials: 2016! = 2016 · 2015 · . . . · 2 · 1.
 
 In this problem we look at their lesser-known love-child the exponial, which is an operation defined for all positive integers n as
@@ -79,15 +79,15 @@ Output a single integer, the value of exponial(n) mod m.
 ![image](https://licensebuttons.net/l/by-sa/3.0/88x31.png)
 
 ICPC
-\> 
+\>
 Regionals
-\> 
+\>
 Europe
-\> 
+\>
 Northwestern European Regional Contest
-\> 
+\>
 Nordic Collegiate Programming Contest
-\> 
+\>
 NCPC 2016
 E번
 
@@ -100,4 +100,3 @@ E번
 - 분할 정복을 이용한 거듭제곱
 - 소인수분해
 - 오일러 피 함수
-

@@ -1,26 +1,26 @@
 # 20226. [Luggage](https://www.acmicpc.net/problem/20226)
 
-| 티어 | 시간 제한 | 메모리 제한 | 제출 | 정답 | 맞힌 사람 | 정답 비율 |
-|---|---|---|---:|---:|---:|---:|
-| <img src="https://static.solved.ac/tier_small/22.svg" width="50%" /> | 10 초 (추가 시간 없음) | 512 MB | 755 | 211 | 105 | 22.976% |
+| 티어                                                                  | 시간 제한              | 메모리 제한 | 제출 | 정답 | 맞힌 사람 | 정답 비율 |
+| --------------------------------------------------------------------- | ---------------------- | ----------- | ---: | ---: | --------: | --------: |
+| <img src="https://static.solved.ac/tier_small/22.svg" width="20px" /> | 10 초 (추가 시간 없음) | 512 MB      |  755 |  211 |       105 |   22.976% |
 
 ---
 
 ## 문제
 
-Mr. Yokohama is estimating the delivery fare for a number of luggage pieces. The fare for a piece is determined by its width  *w* , depth  *d*  and height  *h* , each rounded up to an integer. The fare is proportional to the  *sum*  of them.
+Mr. Yokohama is estimating the delivery fare for a number of luggage pieces. The fare for a piece is determined by its width _w_ , depth _d_ and height _h_ , each rounded up to an integer. The fare is proportional to the _sum_ of them.
 
 ![image](https://upload.acmicpc.net/e63dd384-ee2c-4c25-b294-00483c12a2c7/-/preview/)
 
-The list of the luggage pieces is at hand, but the list has the  *product* *w* × *d* × *h*  for each piece, instead of the  *sum* *w* + *d* + *h*  by mistake. This information is not enough to calculate the exact delivery fare.
+The list of the luggage pieces is at hand, but the list has the _product_ _w_ × _d_ × _h_ for each piece, instead of the _sum_ _w_ + _d_ + _h_ by mistake. This information is not enough to calculate the exact delivery fare.
 
-Mr. Yokohama therefore decided to estimate the minimum possible delivery fare. To this end, given the listed  *product* *p*  for each of the luggage pieces, the minimum possible  *sum* *s* = *w* + *d* + *h*  satisfying  *p* = *w* × *d* × *h*  should be found.
+Mr. Yokohama therefore decided to estimate the minimum possible delivery fare. To this end, given the listed _product_ _p_ for each of the luggage pieces, the minimum possible _sum_ _s_ = _w_ + _d_ + _h_ satisfying _p_ = _w_ × _d_ × _h_ should be found.
 
-You are requested to help Mr. Yokohama by writing a program that, when given the product  *p* , computes the minimum sum  *s.*
+You are requested to help Mr. Yokohama by writing a program that, when given the product _p_ , computes the minimum sum _s._
 
 ## 입력
 
-The input consists of multiple datasets. Each of the datasets has one line containing an integer  *p*  (0 <  *p*  < $10^{15}$
+The input consists of multiple datasets. Each of the datasets has one line containing an integer _p_ (0 < _p_ < $10^{15}$
 ).
 
 The end of the input is indicated by a line containing a zero.
@@ -29,7 +29,7 @@ The number of datasets does not exceed 300.
 
 ## 출력
 
-For each dataset, output a single line containing an integer  *s* .  *s*  should be the minimum possible sum  *w* + *d* + *h*  of three positive integers,  *w,* *d,*  and  *h,*  satisfying  *p* = *w* × *d* × *h.*
+For each dataset, output a single line containing an integer _s_ . _s_ should be the minimum possible sum _w_ + _d_ + _h_ of three positive integers, _w,_ _d,_ and _h,_ satisfying _p_ = _w_ × _d_ × _h._
 
 ## 예제
 
@@ -69,15 +69,15 @@ For each dataset, output a single line containing an integer  *s* .  *s*  should
 ## 출처
 
 ICPC
-\> 
+\>
 Regionals
-\> 
+\>
 Asia Pacific
-\> 
+\>
 Japan
-\> 
+\>
 Japan Domestic Contest
-\> 
+\>
 2020 Japan Domestic Contest
 C번
 
@@ -90,4 +90,3 @@ C번
 - 소인수분해
 - 폴라드 로
 - 밀러–라빈 소수 판별법
-

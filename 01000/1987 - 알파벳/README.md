@@ -1,8 +1,8 @@
 # 1987. [알파벳](https://www.acmicpc.net/problem/1987)
 
-| 티어 | 시간 제한 | 메모리 제한 | 제출 | 정답 | 맞힌 사람 | 정답 비율 |
-|---|---|---|---:|---:|---:|---:|
-| <img src="https://static.solved.ac/tier_small/12.svg" width="50%" /> | 2 초 | 256 MB | 148466 | 46487 | 28101 | 28.770% |
+| 티어                                                                  | 시간 제한 | 메모리 제한 |   제출 |  정답 | 맞힌 사람 | 정답 비율 |
+| --------------------------------------------------------------------- | --------- | ----------- | -----: | ----: | --------: | --------: |
+| <img src="https://static.solved.ac/tier_small/12.svg" width="20px" /> | 2 초      | 256 MB      | 148466 | 46487 |     28101 |   28.770% |
 
 ---
 
@@ -77,11 +77,11 @@ HMCHH
 ## 출처
 
 Olympiad
-\> 
+\>
 Croatian Highschool Competitions in Informatics
-\> 
+\>
 2002
-\> 
+\>
 Regional Competition - Juniors
 3번
 
@@ -94,4 +94,3 @@ Regional Competition - Juniors
 - 깊이 우선 탐색
 - 백트래킹
 - 격자 그래프
-

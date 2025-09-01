@@ -1,8 +1,8 @@
 # 15373. [A Simple Problem!](https://www.acmicpc.net/problem/15373)
 
-| 티어 | 시간 제한 | 메모리 제한 | 제출 | 정답 | 맞힌 사람 | 정답 비율 |
-|---|---|---|---:|---:|---:|---:|
-| <img src="https://static.solved.ac/tier_small/17.svg" width="50%" /> | 3 초 (추가 시간 없음) | 512 MB | 218 | 53 | 44 | 29.932% |
+| 티어                                                                  | 시간 제한             | 메모리 제한 | 제출 | 정답 | 맞힌 사람 | 정답 비율 |
+| --------------------------------------------------------------------- | --------------------- | ----------- | ---: | ---: | --------: | --------: |
+| <img src="https://static.solved.ac/tier_small/17.svg" width="20px" /> | 3 초 (추가 시간 없음) | 512 MB      |  218 |   53 |        44 |   29.932% |
 
 ---
 
@@ -55,13 +55,13 @@ For each test case, print a single integer which is the answer for that test cas
 ## 출처
 
 ICPC
-\> 
+\>
 Regionals
-\> 
+\>
 Asia Pacific
-\> 
+\>
 Philippines
-\> 
+\>
 2016 ACM-ICPC Asia-Manila Regional Programming Contest 연습 세션
 PB번
 
@@ -70,4 +70,3 @@ PB번
 - 브루트포스 알고리즘
 - 수학
 - 정수론
-

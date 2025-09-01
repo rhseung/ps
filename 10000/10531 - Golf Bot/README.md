@@ -1,8 +1,8 @@
 # 10531. [Golf Bot](https://www.acmicpc.net/problem/10531)
 
-| 티어 | 시간 제한 | 메모리 제한 | 제출 | 정답 | 맞힌 사람 | 정답 비율 |
-|---|---|---|---:|---:|---:|---:|
-| <img src="https://static.solved.ac/tier_small/20.svg" width="50%" /> | 1 초 | 256 MB | 3839 | 1817 | 1019 | 47.684% |
+| 티어                                                                  | 시간 제한 | 메모리 제한 | 제출 | 정답 | 맞힌 사람 | 정답 비율 |
+| --------------------------------------------------------------------- | --------- | ----------- | ---: | ---: | --------: | --------: |
+| <img src="https://static.solved.ac/tier_small/20.svg" width="20px" /> | 1 초      | 256 MB      | 3839 | 1817 |      1019 |   47.684% |
 
 ---
 
@@ -73,13 +73,13 @@ Holes 4 and 6 can never be reached.
 ![image](https://licensebuttons.net/l/by-sa/3.0/88x31.png)
 
 ICPC
-\> 
+\>
 Regionals
-\> 
+\>
 Europe
-\> 
+\>
 Southwestern European Regional Contest
-\> 
+\>
 SWERC 2014
 C번
 
@@ -87,4 +87,3 @@ C번
 
 - 수학
 - 고속 푸리에 변환
-

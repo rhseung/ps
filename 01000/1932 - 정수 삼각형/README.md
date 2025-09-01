@@ -1,18 +1,18 @@
 # 1932. [정수 삼각형](https://www.acmicpc.net/problem/1932)
 
-| 티어 | 시간 제한 | 메모리 제한 | 제출 | 정답 | 맞힌 사람 | 정답 비율 |
-|---|---|---|---:|---:|---:|---:|
-| <img src="https://static.solved.ac/tier_small/10.svg" width="50%" /> | 2 초 | 128 MB | 112214 | 66891 | 50721 | 60.273% |
+| 티어                                                                  | 시간 제한 | 메모리 제한 |   제출 |  정답 | 맞힌 사람 | 정답 비율 |
+| --------------------------------------------------------------------- | --------- | ----------- | -----: | ----: | --------: | --------: |
+| <img src="https://static.solved.ac/tier_small/10.svg" width="20px" /> | 2 초      | 128 MB      | 112214 | 66891 |     50721 |   60.273% |
 
 ---
 
 ## 문제
 
 7
-3   8
-8   1   0
-2   7   4   4
-4   5   2   6   5
+3 8
+8 1 0
+2 7 4 4
+4 5 2 6 5
 
 위 그림은 크기가 5인 정수 삼각형의 한 모습이다.
 
@@ -50,31 +50,31 @@
 ## 출처
 
 Olympiad
-\> 
+\>
 International Olympiad in Informatics
-\> 
+\>
 IOI 1994
-\> 
+\>
 Day 1
 1번
 Olympiad
-\> 
+\>
 USA Computing Olympiad
-\> 
+\>
 2005-2006 Season
-\> 
+\>
 USACO December 2005 Contest
-\> 
+\>
 Bronze
 ?번
 Olympiad
-\> 
+\>
 USA Computing Olympiad
-\> 
+\>
 1999-2000 Season
-\> 
+\>
 USACO Fall 1999 Contest
-\> 
+\>
 Gold
 1번
 
@@ -86,4 +86,3 @@ Gold
 ## 알고리즘 분류
 
 - 다이나믹 프로그래밍
-

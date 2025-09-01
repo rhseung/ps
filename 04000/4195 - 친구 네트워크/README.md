@@ -1,8 +1,8 @@
 # 4195. [친구 네트워크](https://www.acmicpc.net/problem/4195)
 
-| 티어 | 시간 제한 | 메모리 제한 | 제출 | 정답 | 맞힌 사람 | 정답 비율 |
-|---|---|---|---:|---:|---:|---:|
-| <img src="https://static.solved.ac/tier_small/14.svg" width="50%" /> | 3 초 | 256 MB | 56016 | 16932 | 10724 | 28.205% |
+| 티어                                                                  | 시간 제한 | 메모리 제한 |  제출 |  정답 | 맞힌 사람 | 정답 비율 |
+| --------------------------------------------------------------------- | --------- | ----------- | ----: | ----: | --------: | --------: |
+| <img src="https://static.solved.ac/tier_small/14.svg" width="20px" /> | 3 초      | 256 MB      | 56016 | 16932 |     10724 |   28.205% |
 
 ---
 
@@ -54,9 +54,9 @@ Barney Betty
 ![image](https://licensebuttons.net/l/by-sa/3.0/88x31.png)
 
 Contest
-\> 
+\>
 Waterloo's local Programming Contests
-\> 
+\>
 27 September, 2008
 C번
 
@@ -70,4 +70,3 @@ C번
 - 집합과 맵
 - 해시를 사용한 집합과 맵
 - 분리 집합
-

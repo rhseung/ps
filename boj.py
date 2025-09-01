@@ -677,7 +677,7 @@ class ProblemFetcher:
         def esc(s: str) -> str:
             return s if s is not None else ""
         title = esc(details.get("title", "")).strip() or f"BOJ {pid}"
-        tier_md = f'<img src="{details["tier_image"]}" width="50%" />' if details.get("tier_image") else ""
+        tier_md = f'<img src="{details["tier_image"]}" width="20px" />' if details.get("tier_image") else ""
         md = []
         md.append(f"# {pid}. [{title}](https://www.acmicpc.net/problem/{pid})")
         md.append("")

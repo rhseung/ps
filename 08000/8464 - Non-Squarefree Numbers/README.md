@@ -1,8 +1,8 @@
 # 8464. [Non-Squarefree Numbers](https://www.acmicpc.net/problem/8464)
 
-| 티어 | 시간 제한 | 메모리 제한 | 제출 | 정답 | 맞힌 사람 | 정답 비율 |
-|---|---|---|---:|---:|---:|---:|
-| <img src="https://static.solved.ac/tier_small/21.svg" width="50%" /> | 2 초 | 32 MB | 3135 | 897 | 723 | 28.309% |
+| 티어                                                                  | 시간 제한 | 메모리 제한 | 제출 | 정답 | 맞힌 사람 | 정답 비율 |
+| --------------------------------------------------------------------- | --------- | ----------- | ---: | ---: | --------: | --------: |
+| <img src="https://static.solved.ac/tier_small/21.svg" width="20px" /> | 2 초      | 32 MB       | 3135 |  897 |       723 |   28.309% |
 
 ---
 
@@ -37,9 +37,9 @@ Your program should output one integer, the n-th non-squarefree number.
 ## 출처
 
 Camp
-\> 
+\>
 POI Training Camp
-\> 
+\>
 ONTAK 2010
 1-1번
 
@@ -49,4 +49,3 @@ ONTAK 2010
 - 정수론
 - 이분 탐색
 - 포함 배제의 원리
-
