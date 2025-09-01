@@ -3,7 +3,7 @@
 """
 Baekjoon workflow helper (start / finish)
 Refactored: modular classes + clearer structure, same CLI and behavior
-- start: create source under `solving/` and APPEND it into add_executable(ps ...)
+- start: create a source under `solving/` and APPEND it into add_executable(ps ...)
 - finish: move the file to thousand-range folder, REMOVE it from add_executable(ps ...), and git commit/push
 
 It fetches the problem title from solved.ac (API v3) with crawler fallback.
@@ -124,9 +124,10 @@ int main() {{
 
 PY_TEMPLATE = """# BOJ {id} - {name}
 import sys
+input = sys.stdin.readline
 
 def main():
-    data = sys.stdin.read().strip().split()
+    data = input().split()
     pass
 
 if __name__ == "__main__":
@@ -134,7 +135,7 @@ if __name__ == "__main__":
 """
 
 DEFAULT_CFG = {
-    "lang": "cpp",  # default language
+    "lang": "py",  # default language
     "run_dir": "${CMAKE_BINARY_DIR}/bin",  # not used when injecting into ps target
 }
 
@@ -256,11 +257,11 @@ class ProblemFetcher:
         return None
 
     def fetch_samples(self, pid: int) -> list[tuple[str, str]]:
-        """Return list of (input, output) sample pairs from BOJ page.
+        """Return the list of (input, output) sample pairs from the BOJ page.
         Strategy (handle as many DOM variants as possible):
           A) Primary: <pre id="sample-input-N"> / <pre id="sample-output-N">
           B) Variants: allow <div> instead of <pre> and any order of attributes
-          C) Legacy: <section id="sampleinputN"> / <section id="sampleoutputN"> with <pre class="sampledata">
+          C) Legacy: <section id="sampleinputN"> / <section id="sampleoutputN"> with <pre-class="sampledata">
           D) Fallback: headings <h[1-6]>예제 입력 N</h[1-6]> followed by <pre>
         Cleans HTML spans (e.g., space-highlight), converts <br> to newlines, preserves spaces/newlines.
         """
@@ -321,13 +322,13 @@ class ProblemFetcher:
             frag = re.sub(r'<[^>]+>', '', frag)
             # Unescape HTML entities
             frag = html.unescape(frag)
-            # Normalise newlines; keep trailing spaces, trim only trailing newlines
+            # Normalize newlines; keep trailing spaces, trim only trailing newlines
             frag = frag.replace('\r\n', '\n').replace('\r', '\n')
             return frag.strip('\n')
 
         def _preview(s: str, n: int = 80) -> str:
             s = s.replace('\n', '\\n')
-            return (s[:n] + ('…' if len(s) > n else ''))
+            return s[:n] + ('…' if len(s) > n else '')
 
         # Collector util that merges input/output maps into ordered pairs
         def _pairs_from_maps(inp_map: dict[int, str], out_map: dict[int, str]) -> list[tuple[str, str]]:
@@ -358,7 +359,7 @@ class ProblemFetcher:
                 _log(f"  sample #{i} in: '{_preview(a)}' | out: '{_preview(b)}'")
             return pairs
 
-        # --- C) Legacy section ids sampleinputN / sampleoutputN with <pre class="sampledata">
+        # --- C) Legacy section ids sampleinputN / sampleoutputN with <pre-class="sampledata">
         inputs.clear()
         outputs.clear()
         for m in re.finditer(
@@ -377,9 +378,9 @@ class ProblemFetcher:
                 _log(f"  sample #{i} in: '{_preview(a)}' | out: '{_preview(b)}'")
             return pairs
 
-        # --- D) Fallback: headings 예제 입력/출력 N with arbitrary heading level and following <pre>
+        # --- D) Fallback: headings 예제 입력/출력 N with arbitrary heading level and the following <pre>
         blocks: list[tuple[str, int, str]] = []
-        for m in re.finditer(r'<h[1-6][^>]*>\s*([^<]*?)\s*(\d+)\s*<\/h[1-6]>\s*<pre[^>]*>(.*?)<\/pre>', html_text,
+        for m in re.finditer(r'<h[1-6][^>]*>\s*([^<]*?)\s*(\d+)\s*</h[1-6]>\s*<pre[^>]*>(.*?)</pre>', html_text,
                              re.DOTALL | re.IGNORECASE):
             label_raw = html.unescape(m.group(1)).strip().lower()
             idx = int(m.group(2))
@@ -547,7 +548,7 @@ class Runner:
             if c.exists():
                 return c
 
-        # Fallback to the first candidate even if missing (for helpful error path)
+        # Fallback to the first candidate even if missing (for a helpful error path)
         return candidates[0]
 
     def run_cases(self, bin_path: Path, cases: list[tuple[str, str]]) -> list[dict]:
@@ -589,7 +590,7 @@ class BOJHelper:
 
     # ----------------------------- start command -----------------------------
     def start(self, pid: int, name: Optional[str], lang: Optional[str]) -> None:
-        lang = (lang or self.config.get("lang", "cpp")).lower()
+        lang = (lang or self.config.get("lang", "py")).lower()
 
         if not name:
             fetched = self.fetcher.fetch(pid)
@@ -619,9 +620,9 @@ class BOJHelper:
 
     # ---------------------------- finish command -----------------------------
     def finish(self, pid: int, name: Optional[str], lang: Optional[str], push: bool, no_git: bool) -> None:
-        lang = (lang or self.config.get("lang", "cpp")).lower()
+        lang = (lang or self.config.get("lang", "py")).lower()
 
-        # locate source in solving/
+        # locate a source in solving/
         src: Optional[Path] = None
         if name:
             candidate = self.paths.solving / f"{pid} - {sanitize_filename(name)}.{lang}"
@@ -678,7 +679,7 @@ class BOJHelper:
         - If `name` is omitted, try to resolve it similarly to `finish`.
         - Prefer files under `solving/`, but fall back to the first match anywhere if needed.
         """
-        lang = (lang or self.config.get("lang", "cpp")).lower()
+        lang = (lang or self.config.get("lang", "py")).lower()
 
         # Try to locate the source file (prefer solving/)
         src: Optional[Path] = None
@@ -697,7 +698,7 @@ class BOJHelper:
             if cand_any:
                 src = cand_any[0]
         if src is None:
-            # If still unknown and name was omitted, best-effort name fetch
+            # If still unknown and the name was omitted, best-effort name fetch
             if not name:
                 fetched = self.fetcher.fetch(pid)
                 if fetched:
@@ -749,22 +750,22 @@ class BOJHelper:
         if cand_solving:
             py_src = cand_solving[0]
         else:
-            # also allow thousand folder (e.g., 02000/xxxx.py)
+            # also allow a thousand folder (e.g., 02000/xxxx.py)
             py_glob = list(self.paths.root.glob(f"**/{pid} -*.py"))
             if py_glob:
                 py_src = py_glob[0]
 
         if py_src is not None:
-            # Run with python interpreter
+            # Run with a python interpreter
             import sys as _sys
             argv = [_sys.executable, str(py_src)]
-            results = self.runner.run_cases_argv(argv, samples)
+            results = self.run_cases_argv(argv, samples)
             bin_display = py_src.name
         else:
             # Fall back to compiled C++ binary
             bin_path = Path(bin_override) if bin_override else self.runner.resolve_bin()
             if not bin_path.exists():
-                # Recompute candidate list to show helpful hint
+                # Recompute a candidate list to show a helpful hint
                 build_dir = self.runner._guess_build_dir()
                 exe = "ps.exe" if os.name == "nt" else "ps"
                 run_dir_cfg = self.config.get("run_dir", "${CMAKE_BINARY_DIR}/bin")
@@ -853,14 +854,14 @@ class CLI:
         sp.set_defaults(cmd="start")
         sp.add_argument("id", type=int)
         sp.add_argument("name", nargs="?", default=None, help="(optional) problem title; fetched from solved.ac if omitted")
-        sp.add_argument("-l", "--lang", choices=["cpp", "py"], default="cpp")
+        sp.add_argument("-l", "--lang", choices=["cpp", "py"], default="py")
 
         # finish
         fp = sub.add_parser("finish", aliases=["f", "fin"], help="move file + remove from ps target + git commit/push")
         fp.set_defaults(cmd="finish")
         fp.add_argument("id", type=int)
         fp.add_argument("name", nargs="?", default=None, help="(optional) title; auto-detect if omitted")
-        fp.add_argument("-l", "--lang", choices=["cpp", "py"], default="cpp")
+        fp.add_argument("-l", "--lang", choices=["cpp", "py"], default="py")
         fp.add_argument("-p", "--push", action="store_true")
         fp.add_argument("-n", "--no-git", action="store_true")
 
@@ -869,7 +870,7 @@ class CLI:
         dp.set_defaults(cmd="delete")
         dp.add_argument("id", type=int)
         dp.add_argument("name", nargs="?", default=None, help="(optional) title to help locate the file")
-        dp.add_argument("-l", "--lang", choices=["cpp", "py"], default="cpp")
+        dp.add_argument("-l", "--lang", choices=["cpp", "py"], default="py")
 
         # run
         rp = sub.add_parser("run", aliases=["r"], help="fetch samples and run them against the ps binary")
