@@ -22,10 +22,10 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, List, Optional
-from typing import TypedDict, Tuple, Dict, Any
+from typing import TypedDict
 from urllib.error import HTTPError, URLError
-
 from urllib.request import Request, urlopen
+
 try:
     from bs4 import BeautifulSoup  # type: ignore
 except Exception:  # pragma: no cover
@@ -223,22 +223,22 @@ class ProblemFetcher:
         bodies = table_el.select('tbody tr') if hasattr(table_el, 'select') else []
         if heads:
             for tr in heads:
-                rows.append([c.get_text(strip=True) for c in tr.find_all(['th','td'])])
+                rows.append([c.get_text(strip=True) for c in tr.find_all(['th', 'td'])])
         if bodies:
             for tr in bodies:
-                rows.append([c.get_text(strip=True) for c in tr.find_all(['th','td'])])
+                rows.append([c.get_text(strip=True) for c in tr.find_all(['th', 'td'])])
         if not rows:
             for tr in table_el.find_all('tr'):
-                cells = [c.get_text(strip=True) for c in tr.find_all(['th','td'])]
+                cells = [c.get_text(strip=True) for c in tr.find_all(['th', 'td'])]
                 if cells:
                     rows.append(cells)
         if not rows:
             return ''
         width = max(len(r) for r in rows)
-        rows = [r + ['']*(width - len(r)) for r in rows]
+        rows = [r + [''] * (width - len(r)) for r in rows]
         out = [
             '| ' + ' | '.join(rows[0]) + ' |',
-            '| ' + ' | '.join(['---']*width) + ' |',
+            '| ' + ' | '.join(['---'] * width) + ' |',
         ]
         for r in rows[1:]:
             out.append('| ' + ' | '.join(r) + ' |')
@@ -268,6 +268,7 @@ class ProblemFetcher:
             if items:
                 return '\n' + '\n'.join(f'- {it}' for it in items) + '\n'
         return cleaned
+
     # === HTML → Markdown 보조 함수 (bs4 사용) ===
     def _bs4_convert_images(self, soup):
         for img in list(soup.find_all('img')):
@@ -303,9 +304,11 @@ class ProblemFetcher:
         def _ul_to_md(ul):
             items = [f"- {li.get_text(separator=' ', strip=True)}" for li in ul.find_all('li', recursive=False)]
             return '\n' + '\n'.join(items) + '\n'
+
         def _ol_to_md(ol):
-            items = [f"{i+1}. {li.get_text(separator=' ', strip=True)}" for i, li in enumerate(ol.find_all('li', recursive=False))]
+            items = [f"{i + 1}. {li.get_text(separator=' ', strip=True)}" for i, li in enumerate(ol.find_all('li', recursive=False))]
             return '\n' + '\n'.join(items) + '\n'
+
         for ul in list(soup.find_all('ul')):
             ul.replace_with(_ul_to_md(ul))
         for ol in list(soup.find_all('ol')):
@@ -313,6 +316,15 @@ class ProblemFetcher:
         # lone li (safety)
         for li in list(soup.find_all('li')):
             li.replace_with(f"- {li.get_text(separator=' ', strip=True)}")
+
+    def _bs4_convert_pre(self, soup):
+        for pre in list(soup.find_all('pre')):
+            # pre 태그 내의 텍스트를 가져옴 (HTML 엔티티 디코딩 포함)
+            import html
+            code_text = html.unescape(pre.get_text())
+            # 마크다운 코드 블록으로 변환
+            md_code = f"\n```\n{code_text}\n```\n"
+            pre.replace_with(md_code)
 
     def _finalize_text_common(self, text: str) -> str:
         import re as _re, html as _html
@@ -331,6 +343,13 @@ class ProblemFetcher:
     def _fallback_clean(self, fragment: str) -> str:
         import re as _re, html as _html
         frag = _re.sub(r'<br\s*/?>', '\n', fragment, flags=_re.IGNORECASE)
+        
+        # <pre> 태그를 마크다운 코드 블록으로 변환
+        def _pre_repl(m):
+            code_content = _html.unescape(m.group(1))
+            return f"\n```\n{code_content}\n```\n"
+        frag = _re.sub(r'<pre[^>]*>(.*?)</pre>', _pre_repl, frag, flags=_re.IGNORECASE | _re.DOTALL)
+        
         frag = _re.sub(r'</?\s*(strong|b)\s*>', '**', frag, flags=_re.IGNORECASE)
         frag = _re.sub(r'</?\s*(em|i)\s*>', '*', frag, flags=_re.IGNORECASE)
         frag = _re.sub(r'</?\s*(s|del|strike)\s*>', '~~', frag, flags=_re.IGNORECASE)
@@ -338,6 +357,7 @@ class ProblemFetcher:
         frag = _re.sub(r'<\s*/\s*sup\s*>', '}', frag, flags=_re.IGNORECASE)
         frag = _re.sub(r'<\s*sub\s*>', '_{', frag, flags=_re.IGNORECASE)
         frag = _re.sub(r'<\s*/\s*sub\s*>', '}', frag, flags=_re.IGNORECASE)
+
         def _img_repl(m):
             src = (m.group(1) or '').strip()
             alt = (m.group(2) or '').strip() or 'image'
@@ -348,8 +368,10 @@ class ProblemFetcher:
             else:
                 src_abs = src
             return f"\n![{alt}]({src_abs})\n"
+
         frag = _re.sub(r'<img[^>]*src\s*=\s*"([^"]+)"[^>]*alt\s*=\s*"([^"]*)"[^>]*>', _img_repl, frag, flags=_re.IGNORECASE)
         frag = _re.sub(r"<img[^>]*src\s*=\s*'([^']+)'[^>]*alt\s*=\s*'([^']*)'[^>]*>", _img_repl, frag, flags=_re.IGNORECASE)
+
         def _img_repl2(m):
             src = (m.group(1) or '').strip()
             alt = 'image'
@@ -360,9 +382,10 @@ class ProblemFetcher:
             else:
                 src_abs = src
             return f"\n![{alt}]({src_abs})\n"
+
         frag = _re.sub(r'<img[^>]*src\s*=\s*"([^"]+)"[^>]*>', _img_repl2, frag, flags=_re.IGNORECASE)
         frag = _re.sub(r"<img[^>]*src\s*=\s*'([^']+)'[^>]*>", _img_repl2, frag, flags=_re.IGNORECASE)
-        frag = _re.sub(r'<li[^>]*>(.*?)</li>', lambda m: f"- {m.group(1).strip()}\n", frag, flags=_re.IGNORECASE|_re.DOTALL)
+        frag = _re.sub(r'<li[^>]*>(.*?)</li>', lambda m: f"- {m.group(1).strip()}\n", frag, flags=_re.IGNORECASE | _re.DOTALL)
         frag = _re.sub(r'<[^>]+>', '', frag)
         frag = _html.unescape(frag).replace('\r\n', '\n').replace('\r', '\n').replace('\u00a0', ' ')
         frag = _re.sub(r'([0-9A-Za-z]+)\s*\^\{([^}]+)\}', r'$\1^{\2}$', frag)
@@ -395,6 +418,7 @@ class ProblemFetcher:
         self._bs4_convert_inline_marks(soup)
         self._bs4_convert_sup_sub(soup)
         self._bs4_convert_lists(soup)
+        self._bs4_convert_pre(soup)
         text = soup.get_text(separator='\n')
         return self._finalize_text_common(text)
 
@@ -420,7 +444,7 @@ class ProblemFetcher:
             if t:
                 title = t.get_text(strip=True)
         if not title:
-            mt = re.search(r'<title>(.*?)</title>', html_text, re.IGNORECASE|re.DOTALL)
+            mt = re.search(r'<title>(.*?)</title>', html_text, re.IGNORECASE | re.DOTALL)
             if mt:
                 title_tag = html.unescape(mt.group(1)).strip()
                 parts = re.split(r'[:\-]\s*', title_tag, maxsplit=1)
@@ -441,7 +465,7 @@ class ProblemFetcher:
                 tier_image = 'https://www.acmicpc.net' + tier_image
         return tier_image
 
-    def _parse_info_table(self, soup, html_text: str) -> tuple[str,str,str,str,str,str]:
+    def _parse_info_table(self, soup, html_text: str) -> tuple[str, str, str, str, str, str]:
 
         time_limit = memory_limit = submissions = accepted = solved = ratio = ''
         if soup:
@@ -491,16 +515,16 @@ class ProblemFetcher:
             ml = re.search(r'메모리\s*제한[^0-9]*([0-9][^<\n]*)', html_text, re.IGNORECASE)
             memory_limit = html.unescape(ml.group(1)).strip() if ml else ''
         if not submissions:
-            m = re.search(r'>\s*제출\s*<.*?>\s*([0-9,]+)\s*<', html_text, re.IGNORECASE|re.DOTALL)
+            m = re.search(r'>\s*제출\s*<.*?>\s*([0-9,]+)\s*<', html_text, re.IGNORECASE | re.DOTALL)
             submissions = m.group(1).strip() if m else submissions
         if not accepted:
-            m = re.search(r'>\s*정답\s*<.*?>\s*([0-9,]+)\s*<', html_text, re.IGNORECASE|re.DOTALL)
+            m = re.search(r'>\s*정답\s*<.*?>\s*([0-9,]+)\s*<', html_text, re.IGNORECASE | re.DOTALL)
             accepted = m.group(1).strip() if m else accepted
         if not solved:
-            m = re.search(r'>\s*맞힌\s*사람\s*<.*?>\s*([0-9,]+)\s*<', html_text, re.IGNORECASE|re.DOTALL)
+            m = re.search(r'>\s*맞힌\s*사람\s*<.*?>\s*([0-9,]+)\s*<', html_text, re.IGNORECASE | re.DOTALL)
             solved = m.group(1).strip() if m else solved
         if not ratio:
-            m = re.search(r'>\s*정답\s*비율\s*<.*?>\s*([0-9.,%]+)\s*<', html_text, re.IGNORECASE|re.DOTALL)
+            m = re.search(r'>\s*정답\s*비율\s*<.*?>\s*([0-9.,%]+)\s*<', html_text, re.IGNORECASE | re.DOTALL)
             ratio = m.group(1).strip() if m else ratio
         return time_limit, memory_limit, submissions, accepted, solved, ratio
 
@@ -510,17 +534,19 @@ class ProblemFetcher:
         if not soup:
             # minimal legacy fallback
             sections: list[SectionDict] = []
+
             def _extract_node_text(sel: str) -> str:
-                m1 = re.search(rf'id\s*=\s*[\"\']{sel}[\"\'][^>]*>(.*?)</section>', html_text, re.IGNORECASE|re.DOTALL)
+                m1 = re.search(rf'id\s*=\s*[\"\']{sel}[\"\'][^>]*>(.*?)</section>', html_text, re.IGNORECASE | re.DOTALL)
                 if m1:
                     return self._clean_html_block(m1.group(1))
-                m2 = re.search(rf'id\s*=\s*[\"\']{sel}[\"\'][^>]*>(.*?)</div>', html_text, re.IGNORECASE|re.DOTALL)
+                m2 = re.search(rf'id\s*=\s*[\"\']{sel}[\"\'][^>]*>(.*?)</div>', html_text, re.IGNORECASE | re.DOTALL)
                 return self._clean_html_block(m2.group(1)) if m2 else ''
+
             for sid, title_txt in (
-                ('problem_description','문제'),
-                ('problem_input','입력'),
-                ('problem_output','출력'),
-                ('problem_note','노트'),
+                    ('problem_description', '문제'),
+                    ('problem_input', '입력'),
+                    ('problem_output', '출력'),
+                    ('problem_note', '노트'),
             ):
                 txt = _extract_node_text(sid)
                 if txt:
@@ -530,13 +556,15 @@ class ProblemFetcher:
         # 샘플 맵(예제 입력/출력 수집)
         sample_inputs: dict[int, str] = {}
         sample_outputs: dict[int, str] = {}
+
         def _clean_pre_local(pre_el) -> str:
             frag = str(pre_el)
             frag = re.sub(r'<span[^>]*class=\"space-highlight\"[^>]*>\s*</span>', ' ', frag, flags=re.IGNORECASE)
             frag = re.sub(r'<br\s*/?>', '\n', frag, flags=re.IGNORECASE)
             frag = re.sub(r'<[^>]+>', '', frag)
-            frag = html.unescape(frag).replace('\r\n','\n').replace('\r','\n')
+            frag = html.unescape(frag).replace('\r\n', '\n').replace('\r', '\n')
             return frag.strip('\n')
+
         for pre in soup.select('pre[id^="sample-input-"]'):
             try:
                 n = int((pre.get('id') or '').split('-')[-1])
@@ -676,13 +704,15 @@ class ProblemFetcher:
     def to_markdown(self, pid: int, details: dict) -> str:
         def esc(s: str) -> str:
             return s if s is not None else ""
+
         title = esc(details.get("title", "")).strip() or f"BOJ {pid}"
         tier_md = f'<img src="{details["tier_image"]}" width="20px" />' if details.get("tier_image") else ""
         md = []
         md.append(f"# {pid}. [{title}](https://www.acmicpc.net/problem/{pid})")
         md.append("")
         md.append("| 티어 | 시간 제한 | 메모리 제한 | 제출 | 정답 | 맞힌 사람 | 정답 비율 |\n|---|---|---|---:|---:|---:|---:|")
-        md.append(f"| {tier_md} | {esc(details.get('time_limit',''))} | {esc(details.get('memory_limit',''))} | {esc(details.get('submissions',''))} | {esc(details.get('accepted',''))} | {esc(details.get('solved',''))} | {esc(details.get('ratio',''))} |")
+        md.append(
+            f"| {tier_md} | {esc(details.get('time_limit', ''))} | {esc(details.get('memory_limit', ''))} | {esc(details.get('submissions', ''))} | {esc(details.get('accepted', ''))} | {esc(details.get('solved', ''))} | {esc(details.get('ratio', ''))} |")
         md.append("\n---\n")
         # Render sections: generic when available
         if details.get('sections'):
@@ -876,9 +906,11 @@ class ProblemFetcher:
                     continue
                 outputs[n] = _clean_pre(str(pre))
         else:
-            for m in re.finditer(r'<pre[^>]*id\s*=\s*[\"\']sample-input-(\d+)[\"\'][^>]*>(.*?)</pre>', html_text, re.DOTALL | re.IGNORECASE):
+            for m in re.finditer(r'<pre[^>]*id\s*=\s*[\"\']sample-input-(\d+)[\"\'][^>]*>(.*?)</pre>', html_text,
+                                 re.DOTALL | re.IGNORECASE):
                 inputs[int(m.group(1))] = _clean_pre(m.group(2))
-            for m in re.finditer(r'<pre[^>]*id\s*=\s*[\"\']sample-output-(\d+)[\"\'][^>]*>(.*?)</pre>', html_text, re.DOTALL | re.IGNORECASE):
+            for m in re.finditer(r'<pre[^>]*id\s*=\s*[\"\']sample-output-(\d+)[\"\'][^>]*>(.*?)</pre>', html_text,
+                                 re.DOTALL | re.IGNORECASE):
                 outputs[int(m.group(1))] = _clean_pre(m.group(2))
         _log(f"primary <pre> ids: inputs={len(inputs)}, outputs={len(outputs)}")  # 기본 <pre> 아이디
         pairs = _pairs_from_maps(inputs, outputs)
@@ -1162,6 +1194,7 @@ class BOJHelper:
         outp.write_text(md + "\n", encoding="utf-8")
         print(f"{L.OK} markdown written: {outp.relative_to(self.paths.root)}")
         return outp
+
     def __init__(self, paths: RepoPaths):
         self.paths = paths
         self.config = Config(paths)
@@ -1377,7 +1410,8 @@ class BOJHelper:
             if legacy_flat:
                 py_src = legacy_flat[0]
             else:
-                py_glob = list(self.paths.root.glob(f"**/{pid} -*/**/*.py")) + list(self.paths.root.glob(f"**/{pid} -*/*.py")) + list(self.paths.root.glob(f"**/{pid} -*.py"))
+                py_glob = list(self.paths.root.glob(f"**/{pid} -*/**/*.py")) + list(self.paths.root.glob(f"**/{pid} -*/*.py")) + list(
+                    self.paths.root.glob(f"**/{pid} -*.py"))
                 if py_glob:
                     py_src = py_glob[0]
 
@@ -1519,11 +1553,6 @@ class CLI:
         hp.set_defaults(cmd="help")
         hp.add_argument("topic", nargs="?", help="command to show help for (start|finish|delete|run)")
 
-        mp = sub.add_parser("md", aliases=["markdown"], help="scrape full problem page and emit a Markdown file")
-        mp.set_defaults(cmd="md")
-        mp.add_argument("id", type=int, nargs="?", help="problem id (optional; inferred from directory if omitted)")
-        mp.add_argument("-o", "--out", dest="out", default=None, help="output path for the markdown (default: docs/boj/{id}.md)")
-
         ap.epilog = (
             "\ncommands:\n"
             "  start  (s, st)   create file and add into ps target\n"
@@ -1540,7 +1569,7 @@ class CLI:
         args = ap.parse_args(argv)
 
         # For commands that require an id, make it optional and infer from directory if not provided
-        commands_with_id = {"start", "finish", "delete", "run", "md"}
+        commands_with_id = {"start", "finish", "delete", "run"}
         if args.cmd in commands_with_id:
             # Only infer if id is None
             if getattr(args, "id", None) is None:
@@ -1563,8 +1592,6 @@ class CLI:
             self.h.delete(args.id, args.name, args.lang)
         elif args.cmd == "run":
             self.h.run(args.id, args.bin)
-        elif args.cmd == "md":
-            self.h.markdown(args.id, args.out)
         elif args.cmd == "help":
             # Rebuild parsers to print the right help if a topic is provided
             if args.topic is None:
