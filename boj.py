@@ -24,7 +24,378 @@ from pathlib import Path
 from typing import Iterable, List, Optional
 from typing import TypedDict
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+
+
+class ProblemSubmitter:
+    """acmicpc.net 제출기 (쿠키 필요).
+    - 쿠키: env BOJ_COOKIE → bojconfig.json 'boj_cookie'
+    - 언어 id: 제출 페이지에서 옵션 파싱으로 자동 결정
+    - 소스: 문제 디렉터리에서 확장자 기준 자동 탐색 (또는 --file)
+    """
+    BASE = "https://www.acmicpc.net"
+
+    def __init__(self, cfg: Config):
+        self.cfg = cfg
+        self.cookie = os.environ.get("BOJ_COOKIE") or (self.cfg.get("boj_cookie") or "").strip()
+        if not self.cookie:
+            print(f"{L.ERROR} BOJ cookie is required for submission.")
+            print(f"{L.HINT} Set environment variable: export BOJ_COOKIE='your_cookie_string'")
+            print(f"{L.HINT} Or create bojconfig.json: {{'boj_cookie': 'your_cookie_string'}}")
+            print(f"{L.HINT} Get cookie from browser after logging in to acmicpc.net")
+            print(f"{L.HINT} Copy all cookies from Developer Tools → Application → Cookies")
+            raise SystemExit("BOJ_COOKIE not configured")
+
+    def _ctx(self):
+        try:
+            if _CAFILE:
+                return ssl.create_default_context(cafile=_CAFILE)
+            else:
+                ctx = ssl.create_default_context()
+                # macOS에서 시스템 키체인 사용
+                if hasattr(ssl, '_create_unverified_context'):
+                    ctx = ssl._create_unverified_context()
+                return ctx
+        except Exception:
+            # SSL 검증 비활성화 (보안상 권장되지 않지만 테스트용)
+            return ssl._create_unverified_context()
+
+    def _get(self, path: str, headers: dict | None = None) -> str:
+        h = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+            # gzip 압축을 비활성화
+            # "Accept-Encoding": "gzip, deflate, br",
+            "DNT": "1",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "same-origin",
+            "Sec-Fetch-User": "?1",
+            "Cache-Control": "max-age=0",
+            "Referer": self.BASE + "/",
+            "Cookie": self.cookie,
+        }
+        if headers:
+            h.update(headers)
+        req = Request(self.BASE + path, headers=h)
+        with urlopen(req, timeout=10, context=self._ctx()) as resp:
+            return resp.read().decode("utf-8", errors="ignore")
+
+    def _post(self, path: str, data: dict, headers: dict | None = None) -> str:
+        body = urlencode(data).encode()
+        h = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+            # gzip 압축을 비활성화
+            # "Accept-Encoding": "gzip, deflate, br",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Length": str(len(body)),
+            "DNT": "1",
+            "Connection": "keep-alive",
+            "Origin": self.BASE,
+            "Referer": self.BASE + path,
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "same-origin",
+            "Sec-Fetch-User": "?1",
+            "Upgrade-Insecure-Requests": "1",
+            "Cookie": self.cookie,
+        }
+        if headers:
+            h.update(headers)
+        req = Request(self.BASE + path, data=body, headers=h, method="POST")
+        with urlopen(req, timeout=10, context=self._ctx()) as resp:
+            return resp.read().decode("utf-8", errors="ignore")
+
+    def _parse_csrf_and_langs(self, html_text: str) -> tuple[str, dict[str, str]]:
+        csrf = ""
+        langs: dict[str, str] = {}
+        
+        # 디버그 모드일 때 추가 정보 출력
+        debug = os.environ.get("BOJ_DEBUG")
+        
+        if BeautifulSoup is not None:
+            soup = BeautifulSoup(html_text, 'html.parser')
+            
+            # CSRF 토큰 찾기 - 더 다양한 패턴 지원
+            csrf_selectors = [
+                "input[name='csrf_key']",
+                "input[name='csrf_token']", 
+                "input[name='_token']",
+                "meta[name='csrf-token']",
+                "input[type='hidden'][name*='csrf']",
+                "input[type='hidden'][name*='token']"
+            ]
+            
+            for selector in csrf_selectors:
+                token = soup.select_one(selector)
+                if token:
+                    csrf = (token.get("value") or token.get("content") or "").strip()
+                    if debug:
+                        print(f"{L.INFO} Found CSRF token using selector: {selector}")
+                    break
+            
+            if debug and not csrf:
+                print(f"{L.WARN} No CSRF token found with BeautifulSoup selectors")
+                # 모든 input 태그 검사
+                inputs = soup.find_all("input")
+                print(f"{L.INFO} Found {len(inputs)} input elements")
+                for inp in inputs[:10]:  # 처음 10개만
+                    name = inp.get('name', '')
+                    if name:
+                        print(f"  - input name='{name}' type='{inp.get('type', '')}' value='{(inp.get('value') or '')[:20]}...'")
+            
+            # 언어 선택 옵션 파싱
+            selectors = ["select[name='language']", "select#language", "select[name*='lang']"]
+            sel = None
+            for selector in selectors:
+                sel = soup.select_one(selector)
+                if sel:
+                    break
+                    
+            if sel:
+                for opt in sel.find_all("option"):
+                    val = (opt.get("value") or "").strip()
+                    text = opt.get_text(" ", strip=True)
+                    if val and text and val != "":  # 빈 값 제외
+                        langs[text] = val
+            elif debug:
+                print(f"{L.WARN} No language select found")
+                
+        else:
+            # BeautifulSoup 없을 때 정규식으로 fallback
+            # CSRF 토큰 찾기 - 더 많은 패턴 시도
+            patterns = [
+                r'name=["\']csrf_key["\'][^>]*value=["\']([^"\']+)["\']',
+                r'name=["\']csrf_token["\'][^>]*value=["\']([^"\']+)["\']', 
+                r'name=["\']_token["\'][^>]*value=["\']([^"\']+)["\']',
+                r'<meta[^>]*name=["\']csrf-token["\'][^>]*content=["\']([^"\']+)["\']',
+                r'value=["\']([^"\']+)["\'][^>]*name=["\']csrf_key["\']',
+                r'value=["\']([^"\']+)["\'][^>]*name=["\']csrf_token["\']',
+                r'<input[^>]*type=["\']hidden["\'][^>]*name=["\'][^"\']*csrf[^"\']*["\'][^>]*value=["\']([^"\']+)["\']',
+                r'<input[^>]*type=["\']hidden["\'][^>]*name=["\'][^"\']*token[^"\']*["\'][^>]*value=["\']([^"\']+)["\']'
+            ]
+            
+            for pattern in patterns:
+                m = re.search(pattern, html_text, re.IGNORECASE)
+                if m:
+                    csrf = m.group(1).strip()
+                    if debug:
+                        print(f"{L.INFO} Found CSRF token using regex pattern")
+                    break
+            
+            # 언어 옵션 찾기
+            for m2 in re.finditer(r'<option[^>]*value=["\']([^"\']+)["\'][^>]*>([^<]+)</option>', html_text, re.IGNORECASE):
+                val = m2.group(1).strip()
+                text = html.unescape(m2.group(2)).strip()
+                if val and text and val != "":
+                    langs[text] = val
+                    
+        if debug:
+            print(f"{L.INFO} CSRF token: {'Found' if csrf else 'Not found'} ({'*' * min(len(csrf), 8) if csrf else 'None'})")
+            print(f"{L.INFO} Languages found: {len(langs)} ({', '.join(list(langs.keys())[:3])}{'...' if len(langs) > 3 else ''})")
+                    
+        return csrf, langs
+
+    def _pick_language_id(self, langs_map: dict[str, str], prefer: str) -> str:
+        prefer = (prefer or '').lower()
+        items = list(langs_map.items())
+
+        def find_contains(keys: list[str]):
+            for label, val in items:
+                low = label.lower()
+                if any(k in low for k in keys):
+                    return val
+            return ""
+
+        def find_exact(keys: list[str]):
+            for label, val in items:
+                low = label.lower()
+                if any(low == k for k in keys):
+                    return val
+            return ""
+
+        if prefer == 'cpp' or prefer == 'c++':
+            # C++ 언어 우선순위: 최신 버전부터
+            v = (find_exact(["c++23", "c++20", "c++17", "c++14", "c++11"]) or
+                 find_contains(["gnu++23", "gnu++20", "gnu++17", "gnu++14", "gnu++11"]) or
+                 find_contains(["c++23", "c++20", "c++17", "c++14", "c++11", "c++", "gnu++"]))
+            if v:
+                return v
+        elif prefer == 'py' or prefer == 'python':
+            # Python 언어 우선순위: PyPy3 > Python 3
+            v = (find_contains(["pypy3"]) or
+                 find_contains(["python 3", "python3"]) or
+                 find_contains(["python"]))
+            if v:
+                return v
+        elif prefer == 'java':
+            v = find_contains(["java", "openjdk"])
+            if v:
+                return v
+        elif prefer == 'js' or prefer == 'javascript':
+            v = find_contains(["node.js", "javascript"])
+            if v:
+                return v
+        
+        # 찾지 못했으면 첫 번째 유효한 언어 반환
+        return next(iter(langs_map.values()), "")
+
+    def detect_source(self, repo: RepoPaths, pid: int, explicit: Optional[str]) -> Path:
+        if explicit:
+            p = (repo.root / explicit).resolve()
+            if not p.exists():
+                raise SystemExit(f"source file not found: {explicit}")
+            return p
+        globs = [
+            repo.root.glob(f"solving/{pid} -*/*.cpp"),
+            repo.root.glob(f"solving/{pid} -*/*.py"),
+            repo.root.glob(f"**/{pid} -*/*.cpp"),
+            repo.root.glob(f"**/{pid} -*/*.py"),
+            repo.root.glob(f"solving/{pid} -*.cpp"),
+            repo.root.glob(f"solving/{pid} -*.py"),
+            repo.root.glob(f"**/{pid} -*.cpp"),
+            repo.root.glob(f"**/{pid} -*.py"),
+        ]
+        for g in globs:
+            for p in g:
+                return p
+        raise SystemExit(f"No source found for {pid}. Use --file to specify.")
+
+    def submit(self, pid: int, repo: RepoPaths, prefer_lang_key: str, open_code: bool, file_path: Optional[str]) -> dict:
+        try:
+            # 1. 제출 페이지에서 CSRF 토큰과 언어 목록 가져오기
+            print(f"{L.INFO} Fetching submit page for problem {pid}...")
+            html_text = self._get(f"/submit/{pid}")
+            
+            # 디버그: HTML 응답 일부 출력
+            if os.environ.get("BOJ_DEBUG"):
+                print(f"{L.INFO} HTML response preview (first 500 chars):")
+                print(html_text[:500])
+                print(f"{L.INFO} Searching for login indicators...")
+                if "로그인" in html_text or "login" in html_text.lower():
+                    print(f"{L.WARN} Login page detected!")
+            
+            # 로그인 페이지인지 확인
+            if "로그인" in html_text or "login" in html_text.lower() or "/login" in html_text:
+                print(f"{L.ERROR} Redirected to login page. Your session has expired.")
+                print(f"{L.HINT} Please login to acmicpc.net and update your cookie.")
+                return {"ok": False, "error": "Session expired - login required"}
+            
+            csrf, langs = self._parse_csrf_and_langs(html_text)
+            
+            if not csrf:
+                print(f"{L.ERROR} Failed to obtain CSRF token. Please check your BOJ_COOKIE.")
+                print(f"{L.HINT} Make sure you're logged in to acmicpc.net and copy the cookie.")
+                raise SystemExit("CSRF token not found")
+                
+            if not langs:
+                print(f"{L.ERROR} Failed to parse language list from submit page.")
+                raise SystemExit("Language options not found")
+            
+            print(f"{L.INFO} Available languages: {', '.join(langs.keys())}")
+            
+            # 2. 언어 ID 선택
+            lang_id = self._pick_language_id(langs, prefer_lang_key)
+            if not lang_id:
+                print(f"{L.ERROR} Could not find suitable language for '{prefer_lang_key}'")
+                print(f"{L.HINT} Available: {list(langs.keys())}")
+                raise SystemExit("Language selection failed")
+            
+            # 선택된 언어 표시
+            selected_lang = next((k for k, v in langs.items() if v == lang_id), lang_id)
+            print(f"{L.OK} Selected language: {selected_lang} (ID: {lang_id})")
+            
+            # 3. 소스 코드 파일 찾기
+            src_path = self.detect_source(repo, pid, file_path)
+            print(f"{L.INFO} Source file: {src_path}")
+            
+            # 4. 소스 코드 읽기
+            try:
+                code = src_path.read_text(encoding='utf-8')
+                if not code.strip():
+                    raise SystemExit(f"Source file is empty: {src_path}")
+                print(f"{L.INFO} Source code length: {len(code)} characters")
+            except UnicodeDecodeError:
+                print(f"{L.ERROR} Failed to read source file with UTF-8 encoding: {src_path}")
+                raise SystemExit("Source file encoding error")
+            
+            # 5. 제출 데이터 준비
+            data = {
+                "problem_id": str(pid),
+                "language": lang_id,
+                "code_open": "open" if open_code else "close",
+                "source": code,
+                "csrf_key": csrf,
+            }
+            
+            # 6. 제출 실행
+            print(f"{L.INFO} Submitting solution...")
+            result_html = self._post(f"/submit/{pid}", data)
+            
+            # 7. 제출 결과 확인
+            success_indicators = [
+                "제출되었습니다",
+                "submitted successfully", 
+                "/status?",
+                "status.php",
+                "내 제출",
+                "My Submissions"
+            ]
+            
+            error_indicators = [
+                "로그인이 필요합니다",
+                "login required",
+                "제출에 실패했습니다",
+                "submission failed",
+                "잘못된 요청입니다",
+                "invalid request"
+            ]
+            
+            success = any(indicator in result_html for indicator in success_indicators)
+            has_error = any(indicator in result_html for indicator in error_indicators)
+            
+            if has_error:
+                print(f"{L.ERROR} Submission failed - please check your login status")
+                if "로그인" in result_html or "login" in result_html:
+                    print(f"{L.HINT} Your session may have expired. Please update BOJ_COOKIE")
+                return {"ok": False, "error": "Login required or session expired"}
+            
+            if success:
+                print(f"{L.OK} Solution submitted successfully!")
+                print(f"{L.HINT} Check your submission status at: https://www.acmicpc.net/status?user_id=YOUR_ID&problem_id={pid}")
+            else:
+                print(f"{L.WARN} Submission may have failed - please check manually")
+            
+            return {
+                "ok": success,
+                "lang_id": lang_id,
+                "language_name": selected_lang,
+                "source_path": str(src_path),
+                "csrf_token": csrf,
+            }
+            
+        except HTTPError as e:
+            if e.code == 403:
+                print(f"{L.ERROR} Access forbidden (403) - check your login cookie")
+            elif e.code == 404:
+                print(f"{L.ERROR} Problem {pid} not found (404)")
+            else:
+                print(f"{L.ERROR} HTTP error {e.code}: {e.reason}")
+            raise SystemExit(f"HTTP error: {e.code}")
+            
+        except URLError as e:
+            print(f"{L.ERROR} Network error: {e.reason}")
+            raise SystemExit("Network connection failed")
+            
+        except Exception as e:
+            print(f"{L.ERROR} Unexpected error during submission: {e}")
+            raise SystemExit("Submission failed")
 
 try:
     from bs4 import BeautifulSoup  # type: ignore
@@ -151,7 +522,7 @@ if __name__ == "__main__":
 """
 
 DEFAULT_CFG = {
-    "lang": "py",  # 기본 언어
+    "lang": "cpp",  # 기본 언어
     "run_dir": "${CMAKE_BINARY_DIR}/bin",  # ps 타겟에 직접 주입할 때는 사용하지 않음
 }
 
@@ -1176,6 +1547,31 @@ class Runner:
 
 # ================================== 코어 =====================================
 class BOJHelper:
+    def submit(self, pid: int, lang: Optional[str], file_path: Optional[str], open_code: bool) -> None:
+        prefer = (lang or self.config.get("lang", "py")).lower()
+        subm = ProblemSubmitter(self.config)
+        res = subm.submit(pid, self.paths, prefer, open_code, file_path)
+        # pretty box summary
+        title = f" Submit BOJ {pid} "
+        bar = Box.TL + Box.H * (len(title) + 2) + Box.TR
+        print(Ansi.wrap(bar, Ansi.BOLD))
+        print(Ansi.wrap(Box.V + " " + title + " " + Box.V, Ansi.BOLD, Ansi.MAGENTA))
+        print(Ansi.wrap(Box.L + Box.H * (len(title) + 2) + Box.R, Ansi.DIM))
+        kv = [
+            ("Language Pref", prefer),
+            ("Lang ID", res.get("lang_id", "?")),
+            ("Source", res.get("source_path", "")),
+            ("Visibility", "open" if open_code else "close"),
+        ]
+        for k, v in kv:
+            line = f"  {k:12}: {v}"
+            print(Box.V + line + Box.V)
+        print(Ansi.wrap(Box.BL + Box.H * (len(title) + 2) + Box.BR, Ansi.DIM))
+        if res.get("ok"):
+            print(f"  {L.OK} submission request sent. Check status page for verdict.")
+            print(Ansi.wrap("  Hint: https://www.acmicpc.net/status?user_id=<YOUR_ID>&problem_id=" + str(pid), Ansi.DIM))
+        else:
+            print(f"  {L.WARN} submission may not have been accepted. Re-check cookie or try again.")
 
     def markdown(self, pid: int, out_path: Optional[str]) -> Path:
         details = self.fetcher.fetch_full_details(pid)
@@ -1524,14 +1920,14 @@ class CLI:
         sp.set_defaults(cmd="start")
         sp.add_argument("id", type=int, nargs="?", help="problem id (optional; inferred from directory if omitted)")
         sp.add_argument("name", nargs="?", default=None, help="(optional) problem title; fetched from solved.ac if omitted")
-        sp.add_argument("-l", "--lang", choices=["cpp", "py"], default="py")
+        sp.add_argument("-l", "--lang", choices=["cpp", "py"], default="cpp")
 
         # finish
         fp = sub.add_parser("finish", aliases=["f", "fin"], help="move file + remove from ps target + git commit/push")
         fp.set_defaults(cmd="finish")
         fp.add_argument("id", type=int, nargs="?", help="problem id (optional; inferred from directory if omitted)")
         fp.add_argument("name", nargs="?", default=None, help="(optional) title; auto-detect if omitted")
-        fp.add_argument("-l", "--lang", choices=["cpp", "py"], default="py")
+        fp.add_argument("-l", "--lang", choices=["cpp", "py"], default="cpp")
         fp.add_argument("-p", "--push", action="store_true")
         fp.add_argument("-n", "--no-git", action="store_true")
 
@@ -1540,13 +1936,21 @@ class CLI:
         dp.set_defaults(cmd="delete")
         dp.add_argument("id", type=int, nargs="?", help="problem id (optional; inferred from directory if omitted)")
         dp.add_argument("name", nargs="?", default=None, help="(optional) title to help locate the file")
-        dp.add_argument("-l", "--lang", choices=["cpp", "py"], default="py")
+        dp.add_argument("-l", "--lang", choices=["cpp", "py"], default="cpp")
 
         # run
         rp = sub.add_parser("run", aliases=["r"], help="fetch samples and run them against the ps binary")
         rp.set_defaults(cmd="run")
         rp.add_argument("id", type=int, nargs="?", help="problem id (optional; inferred from directory if omitted)")
         rp.add_argument("-b", "--bin", dest="bin", default=None, help="override path to ps binary")
+
+        # submit
+        spb = sub.add_parser("submit", aliases=["sb"], help="submit code to acmicpc.net (requires BOJ_COOKIE)")
+        spb.set_defaults(cmd="submit")
+        spb.add_argument("id", type=int, nargs="?", help="problem id (optional; inferred from directory if omitted)")
+        spb.add_argument("-l", "--lang", choices=["cpp", "py"], default='py', help="preferred language family")
+        spb.add_argument("-f", "--file", dest="file", default=None, help="explicit path to source file")
+        spb.add_argument("--open", dest="open", action="store_true", help="make code public (default: private)")
 
         # help
         hp = sub.add_parser("help", aliases=["h"], help="show help (optionally for a specific command)")
@@ -1559,6 +1963,7 @@ class CLI:
             "  finish (f, fin)  move file, remove from ps target, and optionally git commit/push\n"
             "  delete (d, del)  remove from ps target only (code kept, no git)\n"
             "  run    (r)       fetch samples and run them against the ps binary\n"
+            "  submit (sb)     submit code to acmicpc.net using your login cookie\n"
             "  help   (h)       show this help or per-command usage\n"
         )
         return ap
@@ -1569,7 +1974,7 @@ class CLI:
         args = ap.parse_args(argv)
 
         # For commands that require an id, make it optional and infer from directory if not provided
-        commands_with_id = {"start", "finish", "delete", "run"}
+        commands_with_id = {"start", "finish", "delete", "run", "submit"}
         if args.cmd in commands_with_id:
             # Only infer if id is None
             if getattr(args, "id", None) is None:
@@ -1592,6 +1997,8 @@ class CLI:
             self.h.delete(args.id, args.name, args.lang)
         elif args.cmd == "run":
             self.h.run(args.id, args.bin)
+        elif args.cmd == "submit":
+            self.h.submit(args.id, args.lang, args.file, args.open)
         elif args.cmd == "help":
             # Rebuild parsers to print the right help if a topic is provided
             if args.topic is None:
@@ -1618,6 +2025,8 @@ class CLI:
                     print("usage: boj delete|d|del <id> [name] [-l {cpp,py}]")
                 elif canonical == "run":
                     print("usage: boj run|r <id> [-b <path-to-ps>]")
+                elif canonical == "submit":
+                    print("usage: boj submit|sb <id> [-l {cpp,py}] [-f <file>] [--open]\nRequires env BOJ_COOKIE or 'boj_cookie' in bojconfig.json")
 
 
 # ================================== 엔트리포인트 ================================

@@ -1,18 +1,26 @@
-# BOJ 17646 - 제곱수의 합 2 (More Huge)
-from collections import Counter
-from math import floor
-from math import gcd
-from math import isqrt
-from math import sqrt
-from random import randint
 from sys import stdin
-
-input = stdin.readline
-
+from sys import setrecursionlimit
+from math import gcd
+from math import floor
+from math import sqrt
+from math import isqrt
+from random import randint
+from collections import Counter
+def inputline(): return stdin.readline().strip()
 
 def is_square(n: int) -> bool:
     return n == isqrt(n) ** 2
 
+def powmod(a: int, b: int, m: int) -> int:
+    ret = 1
+
+    while b >= 1:
+        if b % 2 == 1:
+            ret = (ret * a) % m
+        a = (a * a) % m
+        b //= 2
+
+    return ret
 
 def miller_rabin(n: int, a: int) -> bool:
     s = 0
@@ -22,18 +30,17 @@ def miller_rabin(n: int, a: int) -> bool:
         s += 1
     d = tmp
 
-    p = pow(a, d, n)
+    p = powmod(a, d, n)
     if p == 1 or p == n - 1:
         return True
 
-    x = pow(a, d, n)
+    x = powmod(a, d, n)
     for r in range(s):
         if x == n - 1:
             return True
-        x = pow(x, 2, n)
+        x = powmod(x, 2, n)
 
     return False
-
 
 def is_prime(n: int) -> bool:
     if n == 1:
@@ -54,14 +61,13 @@ def is_prime(n: int) -> bool:
 
     return True
 
-
 def pollard_rho(n: int, i: int) -> int:
     if is_prime(n):
         return n
     elif n % 2 == 0:
         return 2
 
-    g = lambda x_: (x_ ** 2 + i) % n
+    g = lambda x: (x ** 2 + i) % n
     x = randint(1, floor(sqrt(n - 1))) ** 2 + 1
     y = x
     d = 1
@@ -78,7 +84,6 @@ def pollard_rho(n: int, i: int) -> int:
     else:
         return pollard_rho(d, 1)
 
-
 def get_factors(n):
     factors = []
 
@@ -90,60 +95,33 @@ def get_factors(n):
     factors.sort()
     return factors
 
-
-def get_counts(n: int) -> int:
+def main():
+    n = int(inputline())
     factors = Counter(get_factors(n))
 
+    # print(factors)
+
     if is_square(n):
-        return 1
+        print(1)
+        return
 
     flag = True
     for key, value in factors.items():
-        if key % 4 == 3 and value % 2 == 1:
-            flag = False
-
+        if key % 4 == 3:
+            if value % 2 == 1:
+                flag = False
     if flag:
-        return 2
+        print(2)
+        return
 
     tmp = n
     while tmp % 4 == 0:
         tmp //= 4
-
     if tmp % 8 != 7:
-        return 3
+        print(3)
+        return
 
-    return 4
+    print(4)
+    return
 
-
-def main():
-    n = int(input())
-    cnt = get_counts(n)
-
-    print(cnt)
-
-    match cnt:
-        case 1:
-            print(isqrt(n))
-        case 2:
-            for i in range(isqrt(n), 0, -1):
-                if is_square(n - i * i):
-                    print(i, isqrt(n - i * i))
-                    break
-        case 3:  # O(n^2) 안된다
-            for i in range(isqrt(n), 0, -1):
-                tmp = n - i * i
-                for j in range(isqrt(tmp), 0, -1):
-                    if is_square(tmp - j * j):
-                        print(i, j, isqrt(tmp - j * j))
-                        return
-        case 4:  # O(n^3) 안된다
-            for i in range(isqrt(n), 0, -1):
-                tmp = n - i * i
-                for j in range(isqrt(tmp), 0, -1):
-                    if is_square(tmp - j * j):
-                        print(i, j, isqrt(tmp - j * j))
-                        return
-
-
-if __name__ == "__main__":
-    main()
+main()
