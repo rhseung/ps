@@ -7,4 +7,5 @@ add_executable(ps
     "algorithms/graph.hpp"
     "algorithms/math.hpp"
     "algorithms/search.hpp"
+    "solving/14860 - GCD 곱/14860 - GCD 곱.cpp"
 )
