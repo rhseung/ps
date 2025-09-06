@@ -2,7 +2,7 @@
 
 | 티어 | 시간 제한 | 메모리 제한 | 제출 | 정답 | 맞힌 사람 | 정답 비율 |
 |---|---|---|---:|---:|---:|---:|
-| <img src="https://static.solved.ac/tier_small/11.svg" width="20px" /> | 2 초 | 512 MB | 175512 | 68578 | 42681 | 36.973% |
+| <img src="https://static.solved.ac/tier_small/11.svg" width="20px" /> | 2 초 | 512 MB | 175580 | 68612 | 42698 | 36.977% |
 
 ---
 
