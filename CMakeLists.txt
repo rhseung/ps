@@ -7,4 +7,5 @@ add_executable(ps
     "algorithms/graph.hpp"
     "algorithms/math.hpp"
     "algorithms/search.hpp"
+    "solving/12865 - 평범한 배낭/12865 - 평범한 배낭.cpp"
 )

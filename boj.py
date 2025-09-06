@@ -522,7 +522,7 @@ if __name__ == "__main__":
 """
 
 DEFAULT_CFG = {
-    "lang": "cpp",  # 기본 언어
+    "lang": "py",  # 기본 언어
     "run_dir": "${CMAKE_BINARY_DIR}/bin",  # ps 타겟에 직접 주입할 때는 사용하지 않음
 }
 
@@ -1920,14 +1920,14 @@ class CLI:
         sp.set_defaults(cmd="start")
         sp.add_argument("id", type=int, nargs="?", help="problem id (optional; inferred from directory if omitted)")
         sp.add_argument("name", nargs="?", default=None, help="(optional) problem title; fetched from solved.ac if omitted")
-        sp.add_argument("-l", "--lang", choices=["cpp", "py"], default="cpp")
+        sp.add_argument("-l", "--lang", choices=["cpp", "py"], default="py")
 
         # finish
         fp = sub.add_parser("finish", aliases=["f", "fin"], help="move file + remove from ps target + git commit/push")
         fp.set_defaults(cmd="finish")
         fp.add_argument("id", type=int, nargs="?", help="problem id (optional; inferred from directory if omitted)")
         fp.add_argument("name", nargs="?", default=None, help="(optional) title; auto-detect if omitted")
-        fp.add_argument("-l", "--lang", choices=["cpp", "py"], default="cpp")
+        fp.add_argument("-l", "--lang", choices=["cpp", "py"], default="py")
         fp.add_argument("-p", "--push", action="store_true")
         fp.add_argument("-n", "--no-git", action="store_true")
 
@@ -1936,7 +1936,7 @@ class CLI:
         dp.set_defaults(cmd="delete")
         dp.add_argument("id", type=int, nargs="?", help="problem id (optional; inferred from directory if omitted)")
         dp.add_argument("name", nargs="?", default=None, help="(optional) title to help locate the file")
-        dp.add_argument("-l", "--lang", choices=["cpp", "py"], default="cpp")
+        dp.add_argument("-l", "--lang", choices=["cpp", "py"], default="py")
 
         # run
         rp = sub.add_parser("run", aliases=["r"], help="fetch samples and run them against the ps binary")
