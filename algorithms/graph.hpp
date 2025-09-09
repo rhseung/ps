@@ -11,7 +11,7 @@
 #include "graph/dfs.hpp"
 #include "graph/dijkstra.hpp"
 #include "graph/line_intersect.hpp"
-#include "graph/union-find.hpp"
+#include "graph/union_find.hpp"
 #include "graph/vector2d.hpp"
 #include "graph/mst.hpp"
 #include "graph/unit.hpp"
