@@ -1,3 +1,7 @@
+# BOJ 12797 - 연금술
+import sys
+input = sys.stdin.readline
+
 class BerlekampMassey:
     def __init__(self, mod: int = 998244353):
         self.mod = mod
@@ -96,10 +100,25 @@ class BerlekampMassey:
         dp = [x % MOD for x in seq[:m]]
         return self.get_nth(rec, dp, n) % MOD
 
+n, m = map(int, input().split())
+A = list(map(int, input().split()))
+mod = 10**9 + 7
 
-if __name__ == "__main__":
-    bm = BerlekampMassey()
-    seq = [0, 1, 1, 2, 3, 5, 8]
-    rec = bm.berlekamp_massey(seq)
-    print("rec:", rec)
-    print("10th:", bm.guess_nth_term(seq, 10))  # F10 = 55
+DP = [[0] * m for _ in range(2*m)]
+DP[0][0] = A[0]
+
+# DP[i][j] = DP[i - 1][j] * A[j] + DP[i][j - 1]
+for i in range(1, m):
+    DP[0][i] = (DP[0][i - 1] + A[i]) % mod
+for i in range(1, 2*m):
+    DP[i][0] = (DP[i - 1][0] * A[0]) % mod
+for j in range(1, m):
+    for i in range(1, 2*m):
+        DP[i][j] = (DP[i - 1][j] * A[j] + DP[i][j - 1]) % mod
+
+rec = []
+for i in range(0, 2*m):
+    rec.append(DP[i][m - 1])
+
+bm = BerlekampMassey(mod=mod)
+print(bm.guess_nth_term(rec, n - 1))
