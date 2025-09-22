@@ -1,19 +1,19 @@
-# BOJ 18791 - N의 배수 (2)
+# BOJ 18792 - N의 배수 (3)
 import sys
 
 input = sys.stdin.readline
 
 
-def mod_exp(base: int, exp: int, m: int) -> int:
+def modpow(base: int, exp: int, m: int) -> int:
     return pow(base, exp, m)
 
 
-def mod_inverse(d: int, p: int) -> int:
+def modinv(d: int, p: int) -> int:
     return pow(d, p - 2, p)
 
 
-def find_t(p: int, t_check: list[bool], d: int, u: int, v: int) -> int:
-    d_inv = mod_inverse(d, p)
+def find(p: int, t_check: list[bool], d: int, u: int, v: int) -> int:
+    d_inv = modinv(d, p)
     left = (u * d_inv) % p
     right = p + ((v * d_inv) % p)
 
@@ -27,7 +27,7 @@ def find_t(p: int, t_check: list[bool], d: int, u: int, v: int) -> int:
     return (right % p) * d % p
 
 
-def egz_prime(p: int, nums: list[int]) -> list[bool]:
+def prime_egz(p: int, nums: list[int]) -> list[bool]:
     k = list(range(2 * p - 1))
     k.sort(key=lambda x: nums[x] % p)
 
@@ -51,7 +51,7 @@ def egz_prime(p: int, nums: list[int]) -> list[bool]:
         if t_check[0]:
             break
         diff = (nums[k[p + i - 1]] - nums[k[i]]) % p
-        t = find_t(p, t_check, diff, s, 0)
+        t = find(p, t_check, diff, s, 0)
         t_check[t] = True
         t_idxes[t] = i
 
@@ -69,7 +69,7 @@ def egz_prime(p: int, nums: list[int]) -> list[bool]:
     return ret
 
 
-def egz_composite(p: int, q: int, nums: list[int]) -> list[bool]:
+def composite_egz(p: int, q: int, nums: list[int]) -> list[bool]:
     s = list(range(p - 1))
     t_groups: list[list[int] | None] = [None] * (2 * q - 1)
 
@@ -119,17 +119,15 @@ def egz(n: int, nums: list[int]) -> list[bool]:
 
     for i in range(2, n):
         if n % i == 0:
-            return egz_composite(i, n // i, nums)
+            return composite_egz(i, n // i, nums)
 
-    return egz_prime(n, nums)
+    return prime_egz(n, nums)
 
 
 n = int(input())
 nums = list(map(int, input().split()))
 ret = egz(n, nums)
 
-out = []
 for i in range(2 * n - 1):
     if ret[i]:
-        out.append(str(nums[i]))
-print(" ".join(out))
+        print(nums[i], end=' ')
