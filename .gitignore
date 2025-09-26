@@ -1,5 +1,5 @@
-/.idea/
+.idea/
 .DS_Store
-/.venv/
-/.solving/
+.venv/
+solving/
 
