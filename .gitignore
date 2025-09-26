@@ -1,6 +1,7 @@
 .idea/
-.DS_Store
 .venv/
 solving/
 __pycache__/
+
+.DS_Store
 CMakeLists.txt
