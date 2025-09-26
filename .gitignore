@@ -2,4 +2,5 @@
 .DS_Store
 .venv/
 solving/
-
+__pycache__/
+CMakeLists.txt
