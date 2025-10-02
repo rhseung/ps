@@ -511,7 +511,7 @@ int main() {{
 # 파이썬 문제 템플릿
 PY_TEMPLATE = """# BOJ {id} - {name}
 import sys
-input = sys.stdin.readline
+def input() -> str: return sys.stdin.readline()
 
 data = input().split()
 """
