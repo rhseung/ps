@@ -115,23 +115,23 @@ class ProblemSubmitter:
     def _parse_csrf_and_langs(self, html_text: str) -> tuple[str, dict[str, str]]:
         csrf = ""
         langs: dict[str, str] = {}
-        
+
         # 디버그 모드일 때 추가 정보 출력
         debug = os.environ.get("BOJ_DEBUG")
-        
+
         if BeautifulSoup is not None:
             soup = BeautifulSoup(html_text, 'html.parser')
-            
+
             # CSRF 토큰 찾기 - 더 다양한 패턴 지원
             csrf_selectors = [
                 "input[name='csrf_key']",
-                "input[name='csrf_token']", 
+                "input[name='csrf_token']",
                 "input[name='_token']",
                 "meta[name='csrf-token']",
                 "input[type='hidden'][name*='csrf']",
                 "input[type='hidden'][name*='token']"
             ]
-            
+
             for selector in csrf_selectors:
                 token = soup.select_one(selector)
                 if token:
@@ -139,7 +139,7 @@ class ProblemSubmitter:
                     if debug:
                         print(f"{L.INFO} Found CSRF token using selector: {selector}")
                     break
-            
+
             if debug and not csrf:
                 print(f"{L.WARN} No CSRF token found with BeautifulSoup selectors")
                 # 모든 input 태그 검사
@@ -149,7 +149,7 @@ class ProblemSubmitter:
                     name = inp.get('name', '')
                     if name:
                         print(f"  - input name='{name}' type='{inp.get('type', '')}' value='{(inp.get('value') or '')[:20]}...'")
-            
+
             # 언어 선택 옵션 파싱
             selectors = ["select[name='language']", "select#language", "select[name*='lang']"]
             sel = None
@@ -157,7 +157,7 @@ class ProblemSubmitter:
                 sel = soup.select_one(selector)
                 if sel:
                     break
-                    
+
             if sel:
                 for opt in sel.find_all("option"):
                     val = (opt.get("value") or "").strip()
@@ -166,13 +166,13 @@ class ProblemSubmitter:
                         langs[text] = val
             elif debug:
                 print(f"{L.WARN} No language select found")
-                
+
         else:
             # BeautifulSoup 없을 때 정규식으로 fallback
             # CSRF 토큰 찾기 - 더 많은 패턴 시도
             patterns = [
                 r'name=["\']csrf_key["\'][^>]*value=["\']([^"\']+)["\']',
-                r'name=["\']csrf_token["\'][^>]*value=["\']([^"\']+)["\']', 
+                r'name=["\']csrf_token["\'][^>]*value=["\']([^"\']+)["\']',
                 r'name=["\']_token["\'][^>]*value=["\']([^"\']+)["\']',
                 r'<meta[^>]*name=["\']csrf-token["\'][^>]*content=["\']([^"\']+)["\']',
                 r'value=["\']([^"\']+)["\'][^>]*name=["\']csrf_key["\']',
@@ -180,7 +180,7 @@ class ProblemSubmitter:
                 r'<input[^>]*type=["\']hidden["\'][^>]*name=["\'][^"\']*csrf[^"\']*["\'][^>]*value=["\']([^"\']+)["\']',
                 r'<input[^>]*type=["\']hidden["\'][^>]*name=["\'][^"\']*token[^"\']*["\'][^>]*value=["\']([^"\']+)["\']'
             ]
-            
+
             for pattern in patterns:
                 m = re.search(pattern, html_text, re.IGNORECASE)
                 if m:
@@ -188,18 +188,18 @@ class ProblemSubmitter:
                     if debug:
                         print(f"{L.INFO} Found CSRF token using regex pattern")
                     break
-            
+
             # 언어 옵션 찾기
             for m2 in re.finditer(r'<option[^>]*value=["\']([^"\']+)["\'][^>]*>([^<]+)</option>', html_text, re.IGNORECASE):
                 val = m2.group(1).strip()
                 text = html.unescape(m2.group(2)).strip()
                 if val and text and val != "":
                     langs[text] = val
-                    
+
         if debug:
             print(f"{L.INFO} CSRF token: {'Found' if csrf else 'Not found'} ({'*' * min(len(csrf), 8) if csrf else 'None'})")
             print(f"{L.INFO} Languages found: {len(langs)} ({', '.join(list(langs.keys())[:3])}{'...' if len(langs) > 3 else ''})")
-                    
+
         return csrf, langs
 
     def _pick_language_id(self, langs_map: dict[str, str], prefer: str) -> str:
@@ -242,7 +242,7 @@ class ProblemSubmitter:
             v = find_contains(["node.js", "javascript"])
             if v:
                 return v
-        
+
         # 찾지 못했으면 첫 번째 유효한 언어 반환
         return next(iter(langs_map.values()), "")
 
@@ -272,7 +272,7 @@ class ProblemSubmitter:
             # 1. 제출 페이지에서 CSRF 토큰과 언어 목록 가져오기
             print(f"{L.INFO} Fetching submit page for problem {pid}...")
             html_text = self._get(f"/submit/{pid}")
-            
+
             # 디버그: HTML 응답 일부 출력
             if os.environ.get("BOJ_DEBUG"):
                 print(f"{L.INFO} HTML response preview (first 500 chars):")
@@ -280,41 +280,41 @@ class ProblemSubmitter:
                 print(f"{L.INFO} Searching for login indicators...")
                 if "로그인" in html_text or "login" in html_text.lower():
                     print(f"{L.WARN} Login page detected!")
-            
+
             # 로그인 페이지인지 확인
             if "로그인" in html_text or "login" in html_text.lower() or "/login" in html_text:
                 print(f"{L.ERROR} Redirected to login page. Your session has expired.")
                 print(f"{L.HINT} Please login to acmicpc.net and update your cookie.")
                 return {"ok": False, "error": "Session expired - login required"}
-            
+
             csrf, langs = self._parse_csrf_and_langs(html_text)
-            
+
             if not csrf:
                 print(f"{L.ERROR} Failed to obtain CSRF token. Please check your BOJ_COOKIE.")
                 print(f"{L.HINT} Make sure you're logged in to acmicpc.net and copy the cookie.")
                 raise SystemExit("CSRF token not found")
-                
+
             if not langs:
                 print(f"{L.ERROR} Failed to parse language list from submit page.")
                 raise SystemExit("Language options not found")
-            
+
             print(f"{L.INFO} Available languages: {', '.join(langs.keys())}")
-            
+
             # 2. 언어 ID 선택
             lang_id = self._pick_language_id(langs, prefer_lang_key)
             if not lang_id:
                 print(f"{L.ERROR} Could not find suitable language for '{prefer_lang_key}'")
                 print(f"{L.HINT} Available: {list(langs.keys())}")
                 raise SystemExit("Language selection failed")
-            
+
             # 선택된 언어 표시
             selected_lang = next((k for k, v in langs.items() if v == lang_id), lang_id)
             print(f"{L.OK} Selected language: {selected_lang} (ID: {lang_id})")
-            
+
             # 3. 소스 코드 파일 찾기
             src_path = self.detect_source(repo, pid, file_path)
             print(f"{L.INFO} Source file: {src_path}")
-            
+
             # 4. 소스 코드 읽기
             try:
                 code = src_path.read_text(encoding='utf-8')
@@ -324,7 +324,7 @@ class ProblemSubmitter:
             except UnicodeDecodeError:
                 print(f"{L.ERROR} Failed to read source file with UTF-8 encoding: {src_path}")
                 raise SystemExit("Source file encoding error")
-            
+
             # 5. 제출 데이터 준비
             data = {
                 "problem_id": str(pid),
@@ -333,21 +333,21 @@ class ProblemSubmitter:
                 "source": code,
                 "csrf_key": csrf,
             }
-            
+
             # 6. 제출 실행
             print(f"{L.INFO} Submitting solution...")
             result_html = self._post(f"/submit/{pid}", data)
-            
+
             # 7. 제출 결과 확인
             success_indicators = [
                 "제출되었습니다",
-                "submitted successfully", 
+                "submitted successfully",
                 "/status?",
                 "status.php",
                 "내 제출",
                 "My Submissions"
             ]
-            
+
             error_indicators = [
                 "로그인이 필요합니다",
                 "login required",
@@ -356,22 +356,22 @@ class ProblemSubmitter:
                 "잘못된 요청입니다",
                 "invalid request"
             ]
-            
+
             success = any(indicator in result_html for indicator in success_indicators)
             has_error = any(indicator in result_html for indicator in error_indicators)
-            
+
             if has_error:
                 print(f"{L.ERROR} Submission failed - please check your login status")
                 if "로그인" in result_html or "login" in result_html:
                     print(f"{L.HINT} Your session may have expired. Please update BOJ_COOKIE")
                 return {"ok": False, "error": "Login required or session expired"}
-            
+
             if success:
                 print(f"{L.OK} Solution submitted successfully!")
                 print(f"{L.HINT} Check your submission status at: https://www.acmicpc.net/status?user_id=YOUR_ID&problem_id={pid}")
             else:
                 print(f"{L.WARN} Submission may have failed - please check manually")
-            
+
             return {
                 "ok": success,
                 "lang_id": lang_id,
@@ -379,7 +379,7 @@ class ProblemSubmitter:
                 "source_path": str(src_path),
                 "csrf_token": csrf,
             }
-            
+
         except HTTPError as e:
             if e.code == 403:
                 print(f"{L.ERROR} Access forbidden (403) - check your login cookie")
@@ -388,11 +388,11 @@ class ProblemSubmitter:
             else:
                 print(f"{L.ERROR} HTTP error {e.code}: {e.reason}")
             raise SystemExit(f"HTTP error: {e.code}")
-            
+
         except URLError as e:
             print(f"{L.ERROR} Network error: {e.reason}")
             raise SystemExit("Network connection failed")
-            
+
         except Exception as e:
             print(f"{L.ERROR} Unexpected error during submission: {e}")
             raise SystemExit("Submission failed")
@@ -709,13 +709,13 @@ class ProblemFetcher:
     def _fallback_clean(self, fragment: str) -> str:
         import re as _re, html as _html
         frag = _re.sub(r'<br\s*/?>', '\n', fragment, flags=_re.IGNORECASE)
-        
+
         # <pre> 태그를 마크다운 코드 블록으로 변환
         def _pre_repl(m):
             code_content = _html.unescape(m.group(1))
             return f"\n```\n{code_content}\n```\n"
         frag = _re.sub(r'<pre[^>]*>(.*?)</pre>', _pre_repl, frag, flags=_re.IGNORECASE | _re.DOTALL)
-        
+
         frag = _re.sub(r'</?\s*(strong|b)\s*>', '**', frag, flags=_re.IGNORECASE)
         frag = _re.sub(r'</?\s*(em|i)\s*>', '*', frag, flags=_re.IGNORECASE)
         frag = _re.sub(r'</?\s*(s|del|strike)\s*>', '~~', frag, flags=_re.IGNORECASE)
@@ -2006,22 +2006,140 @@ class CLI:
                     "f": "finish", "fin": "finish", "finish": "finish",
                     "d": "delete", "del": "delete", "delete": "delete",
                     "r": "run", "run": "run",
+                    "sb": "submit", "submit": "submit",
                 }
                 canonical = alias_map.get(topic)
                 if not canonical:
                     print(f"{L.WARN} Unknown command: {args.topic}")
                     return
-                # Show minimal per-command help text
+                # Show detailed per-command help text with options
                 if canonical == "start":
-                    print("usage: boj start|s|st <id> [name] [-l {cpp,py}]")
+                    print("╭─ start (s, st) ──────────────────────────────────────────╮")
+                    print("│ 문제 풀이를 시작합니다. 디렉터리와 파일을 생성합니다.    │")
+                    print("╰──────────────────────────────────────────────────────────╯")
+                    print("\n사용법:")
+                    print("  boj start [id] [name] [-l {cpp,py}]")
+                    print("\n인자:")
+                    print("  id              문제 번호 (디렉터리 이름에서 자동 추론 가능)")
+                    print("  name            문제 제목 (생략 시 solved.ac에서 자동 가져오기)")
+                    print("\n옵션:")
+                    print("  -l, --lang      언어 선택 (cpp 또는 py, 기본값: py)")
+                    print("\n설명:")
+                    print("  - solving/<id> - <name>/ 디렉터리 생성")
+                    print("  - 템플릿 코드 파일 생성 (<id> - <name>.{cpp|py})")
+                    print("  - 문제 정보를 크롤링하여 README.md 생성")
+                    print("  - cpp인 경우 CMakeLists.txt의 ps 타겟에 자동 추가")
+                    print("  - 생성된 디렉터리로 자동 이동")
+                    print("\n예제:")
+                    print("  boj start 1000                    # 문제 번호만 지정")
+                    print("  boj start 1000 \"A+B\"             # 제목 명시")
+                    print("  boj start 1000 -l cpp             # C++ 사용")
+                    print("  boj s 1000                        # 축약 명령")
                 elif canonical == "finish":
-                    print("usage: boj finish|f|fin <id> [name] [-l {cpp,py}] [-p] [-n]")
+                    print("╭─ finish (f, fin) ────────────────────────────────────────╮")
+                    print("│ 문제 풀이를 완료하고 정리합니다.                         │")
+                    print("╰──────────────────────────────────────────────────────────╯")
+                    print("\n사용법:")
+                    print("  boj finish [id] [name] [-l {cpp,py}] [-p] [-n]")
+                    print("\n인자:")
+                    print("  id              문제 번호 (디렉터리 이름에서 자동 추론 가능)")
+                    print("  name            문제 제목 (생략 시 자동 감지)")
+                    print("\n옵션:")
+                    print("  -l, --lang      언어 선택 (cpp 또는 py, 기본값: py)")
+                    print("  -p, --push      Git 커밋 후 원격 저장소에 자동 푸시")
+                    print("  -n, --no-git    Git 커밋/푸시 건너뛰기 (파일 이동만)")
+                    print("\n설명:")
+                    print("  - solving/에서 천 단위 폴더(예: 01000/)로 디렉터리 이동")
+                    print("  - cpp인 경우 CMakeLists.txt의 ps 타겟에서 제거")
+                    print("  - --no-git이 아닌 경우:")
+                    print("    * git add -A")
+                    print("    * git commit -m \"solve: <id> - <name>\"")
+                    print("    * --push 옵션이 있으면 git push")
+                    print("\n예제:")
+                    print("  boj finish 1000                   # 기본 완료")
+                    print("  boj finish 1000 -p                # 커밋 + 푸시")
+                    print("  boj finish 1000 -n                # Git 작업 없이 이동만")
+                    print("  boj f 1000                        # 축약 명령")
                 elif canonical == "delete":
-                    print("usage: boj delete|d|del <id> [name] [-l {cpp,py}]")
+                    print("╭─ delete (d, del) ────────────────────────────────────────╮")
+                    print("│ 문제를 ps 타겟에서만 제거합니다. (파일은 유지)           │")
+                    print("╰──────────────────────────────────────────────────────────╯")
+                    print("\n사용법:")
+                    print("  boj delete [id] [name] [-l {cpp,py}]")
+                    print("\n인자:")
+                    print("  id              문제 번호 (디렉터리 이름에서 자동 추론 가능)")
+                    print("  name            문제 제목 (파일 위치 찾기 위한 힌트)")
+                    print("\n옵션:")
+                    print("  -l, --lang      언어 선택 (cpp 또는 py, 기본값: py)")
+                    print("\n설명:")
+                    print("  - cpp인 경우 CMakeLists.txt의 ps 타겟에서만 제거")
+                    print("  - 코드 파일과 디렉터리는 그대로 유지")
+                    print("  - Git 작업은 수행하지 않음")
+                    print("  - finish와 달리 파일 이동 없음")
+                    print("\n예제:")
+                    print("  boj delete 1000                   # 타겟에서만 제거")
+                    print("  boj delete 1000 -l cpp            # C++ 파일 제거")
+                    print("  boj d 1000                        # 축약 명령")
                 elif canonical == "run":
-                    print("usage: boj run|r <id> [-b <path-to-ps>]")
+                    print("╭─ run (r) ────────────────────────────────────────────────╮")
+                    print("│ 예제 입력으로 풀이를 테스트합니다.                       │")
+                    print("╰──────────────────────────────────────────────────────────╯")
+                    print("\n사용법:")
+                    print("  boj run [id] [-b <path>]")
+                    print("\n인자:")
+                    print("  id              문제 번호 (디렉터리 이름에서 자동 추론 가능)")
+                    print("\n옵션:")
+                    print("  -b, --bin       실행 파일 경로 지정 (기본: 자동 탐색)")
+                    print("\n설명:")
+                    print("  - 문제 페이지에서 예제 입/출력을 크롤링")
+                    print("  - Python 파일 우선 탐색 후 자동 실행")
+                    print("  - Python 없으면 컴파일된 ps 바이너리 실행")
+                    print("  - 각 예제의 실행 결과와 예상 출력 비교")
+                    print("  - 실행 시간(ms), 종료 코드, stderr 표시")
+                    print("  - 예제를 tests/ 디렉터리에 자동 저장")
+                    print("\n바이너리 탐색 순서:")
+                    print("  1. bojconfig.json의 run_dir 설정")
+                    print("  2. build/ps (또는 ps.exe)")
+                    print("  3. build/bin/ps")
+                    print("  4. cmake-build-*/ps")
+                    print("\n예제:")
+                    print("  boj run 1000                      # 자동 탐색")
+                    print("  boj run 1000 -b ./my_ps           # 커스텀 바이너리")
+                    print("  boj r 1000                        # 축약 명령")
                 elif canonical == "submit":
-                    print("usage: boj submit|sb <id> [-l {cpp,py}] [-f <file>] [--open]\nRequires env BOJ_COOKIE or 'boj_cookie' in bojconfig.json")
+                    print("╭─ submit (sb) ────────────────────────────────────────────╮")
+                    print("│ acmicpc.net에 코드를 제출합니다. (로그인 쿠키 필요)      │")
+                    print("╰──────────────────────────────────────────────────────────╯")
+                    print("\n사용법:")
+                    print("  boj submit [id] [-l {cpp,py}] [-f <file>] [--open]")
+                    print("\n인자:")
+                    print("  id              문제 번호 (디렉터리 이름에서 자동 추론 가능)")
+                    print("\n옵션:")
+                    print("  -l, --lang      언어 계열 (cpp 또는 py, 기본값: py)")
+                    print("  -f, --file      소스 파일 경로 명시 (기본: 자동 탐색)")
+                    print("  --open          코드 공개 여부 (기본: 비공개)")
+                    print("\n필수 설정:")
+                    print("  BOJ_COOKIE      환경 변수 또는 bojconfig.json의 boj_cookie")
+                    print("                  acmicpc.net 로그인 후 브라우저 쿠키 복사")
+                    print("\n설명:")
+                    print("  - 제출 페이지에서 CSRF 토큰과 언어 목록 자동 파싱")
+                    print("  - 언어 자동 선택 (C++: 최신 버전 우선, Python: PyPy3 > Python 3)")
+                    print("  - 소스 파일 자동 탐색 (solving/<id> -*/*.{cpp|py})")
+                    print("  - 제출 후 성공 여부 및 힌트 메시지 표시")
+                    print("\n쿠키 설정 방법:")
+                    print("  1. acmicpc.net 로그인")
+                    print("  2. 개발자 도구 → Application → Cookies")
+                    print("  3. 모든 쿠키 값 복사")
+                    print("  4. export BOJ_COOKIE='your_cookie_string'")
+                    print("     또는 bojconfig.json에 {\"boj_cookie\": \"...\"}")
+                    print("\n예제:")
+                    print("  boj submit 1000                   # 기본 제출")
+                    print("  boj submit 1000 -l cpp            # C++ 선택")
+                    print("  boj submit 1000 --open            # 코드 공개")
+                    print("  boj submit 1000 -f ./sol.py       # 파일 명시")
+                    print("  boj sb 1000                       # 축약 명령")
+                    print("\n디버그:")
+                    print("  export BOJ_DEBUG=1                # 상세 로그 출력")
 
 
 # ================================== 엔트리포인트 ================================
