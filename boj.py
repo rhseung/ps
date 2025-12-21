@@ -1939,6 +1939,12 @@ class CLI:
         rp.add_argument("id", type=int, nargs="?", help="problem id (optional; inferred from directory if omitted)")
         rp.add_argument("-b", "--bin", dest="bin", default=None, help="override path to ps binary")
 
+        # use
+        up = sub.add_parser("use", aliases=["u"], help="print path of problem directory for cd wrapper")
+        up.set_defaults(cmd="use")
+        up.add_argument("id", type=int, nargs="?", help="problem id")
+        up.add_argument("-p", "--print", dest="print_only", action="store_true", help="print resolved path (default)")
+
         # submit
         spb = sub.add_parser("submit", aliases=["sb"], help="submit code to acmicpc.net (requires BOJ_COOKIE)")
         spb.set_defaults(cmd="submit")
@@ -1958,6 +1964,7 @@ class CLI:
             "  finish (f, fin)  move file, remove from ps target, and optionally git commit/push\n"
             "  delete (d, del)  remove from ps target only (code kept, no git)\n"
             "  run    (r)       fetch samples and run them against the ps binary\n"
+            "  use    (u)       print problem directory path (for shell cd wrapper)\n"
             "  submit (sb)     submit code to acmicpc.net using your login cookie\n"
             "  help   (h)       show this help or per-command usage\n"
         )
@@ -1969,7 +1976,7 @@ class CLI:
         args = ap.parse_args(argv)
 
         # For commands that require an id, make it optional and infer from directory if not provided
-        commands_with_id = {"start", "finish", "delete", "run", "submit"}
+        commands_with_id = {"start", "finish", "delete", "run", "submit", "use"}
         if args.cmd in commands_with_id:
             # Only infer if id is None
             if getattr(args, "id", None) is None:
@@ -1992,6 +1999,27 @@ class CLI:
             self.h.delete(args.id, args.name, args.lang)
         elif args.cmd == "run":
             self.h.run(args.id, args.bin)
+        elif args.cmd == "use":
+            # NOTE: a subprocess cannot change the parent shell's cwd.
+            # This command prints the directory you can `cd` into via a shell wrapper.
+            pid = args.id
+            import sys
+            import contextlib
+            # 1) Prefer solving/<pid> - */
+            cand = sorted(self.h.paths.solving.glob(f"{pid} -*"))
+            prob_dir = next((p for p in cand if p.is_dir()), None)
+
+            if prob_dir is None:
+                # Auto-create the problem directory if it doesn't exist yet.
+                print(f"{L.HINT} problem dir not found; running `boj start {pid}`…", file=sys.stderr)
+                # Let BOJHelper decide title/lang defaults.
+                with contextlib.redirect_stdout(sys.stderr):
+                    self.h.start(pid, None, None)
+                # `start` chdir()'s into the created directory; use that.
+                prob_dir = Path.cwd()
+
+            # Print an absolute path so shell wrappers can cd reliably.
+            print(str(prob_dir.resolve()))
         elif args.cmd == "submit":
             self.h.submit(args.id, args.lang, args.file, args.open)
         elif args.cmd == "help":
@@ -2006,6 +2034,7 @@ class CLI:
                     "f": "finish", "fin": "finish", "finish": "finish",
                     "d": "delete", "del": "delete", "delete": "delete",
                     "r": "run", "run": "run",
+                    "u": "use", "use": "use",
                     "sb": "submit", "submit": "submit",
                 }
                 canonical = alias_map.get(topic)
@@ -2106,6 +2135,22 @@ class CLI:
                     print("  boj run 1000                      # 자동 탐색")
                     print("  boj run 1000 -b ./my_ps           # 커스텀 바이너리")
                     print("  boj r 1000                        # 축약 명령")
+                elif canonical == "use":
+                    print("╭─ use (u) ────────────────────────────────────────────────╮")
+                    print("│ 문제 디렉터리 경로를 출력합니다. (cd 래퍼용)            │")
+                    print("╰──────────────────────────────────────────────────────────╯")
+                    print("\n사용법:")
+                    print("  boj use <id>")
+                    print("\n설명:")
+                    print("  - 프로세스는 부모 셸의 작업 디렉터리를 바꿀 수 없어서")
+                    print("    이 명령은 cd 할 경로를 '출력'만 합니다.")
+                    print("  - 탐색 순서:")
+                    print("    1) solving/<id> - */")
+                    print("    2) <천 단위 폴더>/<id> - */")
+                    print("    3) 리포지토리 전체에서 **/<id> - */")
+                    print("\n예제:")
+                    print("  cd \"$(boj use 1000)\"")
+                    print("  # 또는 셸 함수로\n  bojuse(){ cd \"$(boj use $1)\"; }")
                 elif canonical == "submit":
                     print("╭─ submit (sb) ────────────────────────────────────────────╮")
                     print("│ acmicpc.net에 코드를 제출합니다. (로그인 쿠키 필요)      │")
