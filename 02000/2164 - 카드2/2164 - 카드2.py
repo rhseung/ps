@@ -1,16 +1,15 @@
+# BOJ 2164 - 카드2
 import sys
 from collections import deque
 
-problem_url = "https://boj.kr/2164"
-problem_name = "카드2"
-input = sys.stdin.readline
+
+def input() -> str: return sys.stdin.readline().rstrip()
 
 n = int(input())
-q = deque(range(1, n+1))
+L = deque(range(1, n + 1))
 
-while len(q) > 1:
-	q.popleft()
-	top = q.popleft()
-	q.append(top)
+while len(L) > 1:
+    L.popleft()
+    L.append(L.popleft())
 
-print(q.pop())
+print(L[0])
