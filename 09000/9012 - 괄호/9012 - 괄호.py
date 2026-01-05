@@ -1,22 +1,19 @@
+# BOJ 9012 - 괄호
 import sys
+def input() -> str: return sys.stdin.readline().rstrip()
 
-problem_url = "https://boj.kr/9012"
-problem_name = "괄호"
-input = sys.stdin.readline
+def valid(s: str) -> bool:
+    L = []
+    for c in s:
+        if c == '(':
+            L.append(c)
+        elif L and L[-1] == '(':
+            L.pop()
+        else:
+            return False
+
+    return False if L else True
 
 n = int(input())
 for _ in range(n):
-	query = input().strip()
-	
-	stack = []
-	for c in query:
-		if c == ')' and (stack and stack[-1] == '('):
-			stack.pop()
-		else:
-			stack.append(c)
-		# print(stack)
-	
-	if stack:
-		print("NO")
-	else:
-		print("YES")
+    print("YES" if valid(input()) else "NO")
